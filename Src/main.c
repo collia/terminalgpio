@@ -47,7 +47,7 @@
 
 /* Includes ------------------------------------------------------------------ */
 #include "main.h"
-
+#include "blue_pill.h"
 
 /** @addtogroup STM32F1xx_HAL_Validation
   * @{
@@ -67,6 +67,35 @@ USBD_HandleTypeDef USBD_Device;
 void SystemClock_Config(void);
 
 /* Private functions --------------------------------------------------------- */
+
+static void LED_init()
+{
+    GPIO_InitTypeDef  GPIO_InitStruct;
+    LED1_GPIO_CLK_ENABLE();
+    
+    /* -2- Configure IO in output push-pull mode to drive external LEDs */
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull  = GPIO_PULLDOWN;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    
+    GPIO_InitStruct.Pin = LED1_PIN;
+    HAL_GPIO_Init(LED1_GPIO_PORT, &GPIO_InitStruct);
+
+
+     TIMx_CLK_ENABLE();
+
+  /* ##-7- Configure the NVIC for TIMx ######################################## */
+  /* Set Interrupt Group Priority */
+  HAL_NVIC_SetPriority(TIMx_IRQn, 5, 0);
+
+  /* Enable the TIMx global Interrupt */
+  HAL_NVIC_EnableIRQ(TIMx_IRQn);
+}
+
+void LED_Toggle()
+{
+    HAL_GPIO_TogglePin(LED1_GPIO_PORT, LED1_PIN);
+}
 
 /**
   * @brief  Main program.
@@ -88,6 +117,8 @@ int main(void)
   //BSP_LED_Init(LED3);
   //BSP_LED_Init(LED4);
 
+  LED_init();
+  
   /* Init Device Library */
   USBD_Init(&USBD_Device, &VCP_Desc, 0);
 

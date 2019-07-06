@@ -64,6 +64,7 @@
 /* Exported functions ------------------------------------------------------- */
 void Toggle_Leds(void);
 void Error_Handler(void);
+void LED_Toggle(void);
 
 #endif /* __MAIN_H */
 
