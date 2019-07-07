@@ -68,34 +68,6 @@ void SystemClock_Config(void);
 
 /* Private functions --------------------------------------------------------- */
 
-static void LED_init()
-{
-    GPIO_InitTypeDef  GPIO_InitStruct;
-    LED1_GPIO_CLK_ENABLE();
-    
-    /* -2- Configure IO in output push-pull mode to drive external LEDs */
-    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull  = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    
-    GPIO_InitStruct.Pin = LED1_PIN;
-    HAL_GPIO_Init(LED1_GPIO_PORT, &GPIO_InitStruct);
-
-
-     TIMx_CLK_ENABLE();
-
-  /* ##-7- Configure the NVIC for TIMx ######################################## */
-  /* Set Interrupt Group Priority */
-  HAL_NVIC_SetPriority(TIMx_IRQn, 5, 0);
-
-  /* Enable the TIMx global Interrupt */
-  HAL_NVIC_EnableIRQ(TIMx_IRQn);
-}
-
-void LED_Toggle()
-{
-    HAL_GPIO_TogglePin(LED1_GPIO_PORT, LED1_PIN);
-}
 
 /**
   * @brief  Main program.
@@ -111,13 +83,8 @@ int main(void)
   /* Configure the system clock to 72 MHz */
   SystemClock_Config();
 
-  /* Initialize LEDs */
-  //BSP_LED_Init(LED1);
-  //BSP_LED_Init(LED2);
-  //BSP_LED_Init(LED3);
-  //BSP_LED_Init(LED4);
 
-  LED_init();
+  BRD_led_init();
   
   /* Init Device Library */
   USBD_Init(&USBD_Device, &VCP_Desc, 0);
@@ -209,24 +176,6 @@ void Error_Handler(void)
   }
 }
 
-/**
-  * @brief  Toggle LEDs to shows user input state.
-  * @param  None
-  * @retval None
-  */
-void Toggle_Leds(void)
-{
-  static uint32_t ticks;
-
-  if (ticks++ == 100)
-  {
-   // BSP_LED_Toggle(LED1);
-   // BSP_LED_Toggle(LED2);
-   // BSP_LED_Toggle(LED3);
-   // BSP_LED_Toggle(LED4);
-    ticks = 0;
-  }
-}
 
 #ifdef  USE_FULL_ASSERT
 

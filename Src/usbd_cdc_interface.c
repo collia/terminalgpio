@@ -47,6 +47,7 @@
 
 /* Includes ------------------------------------------------------------------ */
 #include "main.h"
+#include "terminal.h"
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
   * @{
@@ -64,12 +65,6 @@
 
 /* Private macro ------------------------------------------------------------- */
 /* Private variables --------------------------------------------------------- */
-USBD_CDC_LineCodingTypeDef LineCoding = {
-  115200,                       /* baud rate */
-  0x00,                         /* stop bits-1 */
-  0x00,                         /* parity - none */
-  0x08                          /* nb. of bits 8 */
-};
 
 uint8_t UserRxBuffer[APP_RX_DATA_SIZE]; /* Received Data over USB are stored in 
                                          * this buffer */
@@ -96,8 +91,10 @@ static int8_t CDC_Itf_DeInit(void);
 static int8_t CDC_Itf_Control(uint8_t cmd, uint8_t * pbuf, uint16_t length);
 static int8_t CDC_Itf_Receive(uint8_t * pbuf, uint32_t * Len);
 
-static void ComPort_Config(void);
+//static void ComPort_Config(void);
 static void TIM_Config(void);
+static void CDC_tx_timer_init(void);
+static void CDC_tx(uint8_t* buff, uint32_t len);
 
 USBD_CDC_ItfTypeDef USBD_CDC_fops = {
   CDC_Itf_Init,
@@ -108,6 +105,7 @@ USBD_CDC_ItfTypeDef USBD_CDC_fops = {
 
 /* Private functions --------------------------------------------------------- */
 
+
 /**
   * @brief  CDC_Itf_Init
   *         Initializes the CDC media low layer
@@ -116,30 +114,15 @@ USBD_CDC_ItfTypeDef USBD_CDC_fops = {
   */
 static int8_t CDC_Itf_Init(void)
 {
-  /* ##-1- Configure the UART peripheral ###################################### */
-  /* Put the USART peripheral in the Asynchronous mode (UART Mode) */
-  /* USART configured as follows: - Word Length = 8 Bits - Stop Bit = One Stop
-   * bit - Parity = No parity - BaudRate = 115200 baud - Hardware flow control
-   * disabled (RTS and CTS signals) */
 
+    TERM_init(CDC_tx);
     
-    
-  /* ##-3- Configure the TIM Base generation ################################# */
-  TIM_Config();
+    CDC_tx_timer_init();
+    /* ## Set Application Buffers ############################################ */
+    USBD_CDC_SetTxBuffer(&USBD_Device, UserTxBuffer, 0);
+    USBD_CDC_SetRxBuffer(&USBD_Device, UserRxBuffer);
 
-  /* ##-4- Start the TIM Base generation in interrupt mode #################### */
-  /* Start Channel1 */
-  if (HAL_TIM_Base_Start_IT(&TimHandle) != HAL_OK)
-  {
-    /* Starting Error */
-    Error_Handler();
-  }
-
-  /* ##-5- Set Application Buffers ############################################ */
-  USBD_CDC_SetTxBuffer(&USBD_Device, UserTxBuffer, 0);
-  USBD_CDC_SetRxBuffer(&USBD_Device, UserRxBuffer);
-
-  return (USBD_OK);
+    return (USBD_OK);
 }
 
 /**
@@ -150,9 +133,8 @@ static int8_t CDC_Itf_Init(void)
   */
 static int8_t CDC_Itf_DeInit(void)
 {
-  /* DeInitialize the UART peripheral */
-
-  return (USBD_OK);
+     TERM_deinit();
+     return (USBD_OK);
 }
 
 /**
@@ -165,65 +147,68 @@ static int8_t CDC_Itf_DeInit(void)
   */
 static int8_t CDC_Itf_Control(uint8_t cmd, uint8_t * pbuf, uint16_t length)
 {
-    LED_Toggle();    
-  switch (cmd)
-  {
-  case CDC_SEND_ENCAPSULATED_COMMAND:
-    /* Add your code here */
-    break;
+    USBD_CDC_LineCodingTypeDef lineCoding;
+    switch (cmd)
+    {
+    case CDC_SEND_ENCAPSULATED_COMMAND:
+        /* Add your code here */
+        break;
+        
+    case CDC_GET_ENCAPSULATED_RESPONSE:
+        /* Add your code here */
+        break;
+        
+    case CDC_SET_COMM_FEATURE:
+        /* Add your code here */
+        break;
+        
+    case CDC_GET_COMM_FEATURE:
+        /* Add your code here */
+        break;
+        
+    case CDC_CLEAR_COMM_FEATURE:
+        /* Add your code here */
+        break;
+        
+    case CDC_SET_LINE_CODING:
+        lineCoding.bitrate = (uint32_t) (pbuf[0] | (pbuf[1] << 8) |
+                                         (pbuf[2] << 16) | (pbuf[3] << 24));
+        lineCoding.format = pbuf[4];
+        lineCoding.paritytype = pbuf[5];
+        lineCoding.datatype = pbuf[6];
+        
+        /* Set the new configuration */
+        //ComPort_Config();
+        TERM_set_config(&lineCoding);
+        break;
 
-  case CDC_GET_ENCAPSULATED_RESPONSE:
-    /* Add your code here */
-    break;
-
-  case CDC_SET_COMM_FEATURE:
-    /* Add your code here */
-    break;
-
-  case CDC_GET_COMM_FEATURE:
-    /* Add your code here */
-    break;
-
-  case CDC_CLEAR_COMM_FEATURE:
-    /* Add your code here */
-    break;
-
-  case CDC_SET_LINE_CODING:
-    LineCoding.bitrate = (uint32_t) (pbuf[0] | (pbuf[1] << 8) |
-                                     (pbuf[2] << 16) | (pbuf[3] << 24));
-    LineCoding.format = pbuf[4];
-    LineCoding.paritytype = pbuf[5];
-    LineCoding.datatype = pbuf[6];
-
-    /* Set the new configuration */
-    ComPort_Config();
-    break;
-
-  case CDC_GET_LINE_CODING:
-    pbuf[0] = (uint8_t) (LineCoding.bitrate);
-    pbuf[1] = (uint8_t) (LineCoding.bitrate >> 8);
-    pbuf[2] = (uint8_t) (LineCoding.bitrate >> 16);
-    pbuf[3] = (uint8_t) (LineCoding.bitrate >> 24);
-    pbuf[4] = LineCoding.format;
-    pbuf[5] = LineCoding.paritytype;
-    pbuf[6] = LineCoding.datatype;
-
-    /* Add your code here */
-    break;
-
-  case CDC_SET_CONTROL_LINE_STATE:
-    /* Add your code here */
-    break;
-
-  case CDC_SEND_BREAK:
-    /* Add your code here */
-    break;
-
-  default:
-    break;
-  }
-
-  return (USBD_OK);
+    case CDC_GET_LINE_CODING:
+        TERM_get_config(&lineCoding);
+        
+        pbuf[0] = (uint8_t) (lineCoding.bitrate);
+        pbuf[1] = (uint8_t) (lineCoding.bitrate >> 8);
+        pbuf[2] = (uint8_t) (lineCoding.bitrate >> 16);
+        pbuf[3] = (uint8_t) (lineCoding.bitrate >> 24);
+        pbuf[4] = lineCoding.format;
+        pbuf[5] = lineCoding.paritytype;
+        pbuf[6] = lineCoding.datatype;
+        
+        /* Add your code here */
+        break;
+        
+    case CDC_SET_CONTROL_LINE_STATE:
+        /* Add your code here */
+        break;
+        
+    case CDC_SEND_BREAK:
+        /* Add your code here */
+        break;
+        
+    default:
+        break;
+    }
+    
+    return (USBD_OK);
 }
 
 /**
@@ -233,35 +218,39 @@ static int8_t CDC_Itf_Control(uint8_t cmd, uint8_t * pbuf, uint16_t length)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
 {
-#if 0
-  uint32_t buffptr;
-  uint32_t buffsize;
+    uint8_t *buffptr;
+    uint32_t buffsize;
 
-  if (UserTxBufPtrOut != UserTxBufPtrIn)
-  {
-    if (UserTxBufPtrOut > UserTxBufPtrIn) /* rollback */
+    if (UserTxBufPtrOut != UserTxBufPtrIn)
     {
-      buffsize = APP_RX_DATA_SIZE - UserTxBufPtrOut;
+        if (UserTxBufPtrOut > UserTxBufPtrIn) /* rollback */
+        {
+            buffsize = APP_RX_DATA_SIZE - UserTxBufPtrOut;
+        }
+        else
+        {
+            buffsize = UserTxBufPtrIn - UserTxBufPtrOut;
+        }
+        
+        buffptr = UserTxBuffer + UserTxBufPtrOut;
+        
+        //memset(&UserTxBuffer, 'a', 5);
+        //UserTxBuffer[6] = '\n';
+        //UserTxBuffer[7] = '\r';
+        USBD_CDC_SetTxBuffer(&USBD_Device, (uint8_t *) buffptr,
+                             buffsize);
+        
+        if (USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK)
+        {
+            // LED_Toggle();
+            UserTxBufPtrOut += buffsize;
+            if (UserTxBufPtrOut == APP_RX_DATA_SIZE)
+            {
+                UserTxBufPtrOut = 0;
+            }
+
+        }
     }
-    else
-    {
-      buffsize = UserTxBufPtrIn - UserTxBufPtrOut;
-    }
-
-    buffptr = UserTxBufPtrOut;
-#endif
-
-    memset(&UserTxBuffer, 'a', 5);
-    UserTxBuffer[6] = '\n';
-    UserTxBuffer[7] = '\r';
-    USBD_CDC_SetTxBuffer(&USBD_Device, (uint8_t *) & UserTxBuffer,
-                         8);
-
-    if (USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK)
-    {
-        // LED_Toggle();        
-    }
-
 
 }
 
@@ -274,93 +263,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Itf_Receive(uint8_t * Buf, uint32_t * Len)
+static int8_t CDC_Itf_Receive(uint8_t * buf, uint32_t * len)
 {
-    //LED_Toggle();    
+    //LED_Toggle();
+    // echo test
+    CDC_tx(buf, *len);
     return (USBD_OK);
 }
-#if 0
-/**
-  * @brief  Tx Transfer completed callback
-  * @param  huart: UART handle
-  * @retval None
-  */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef * huart)
-{
-  /* Initiate next USB packet transfer once UART completes transfer
-   * (transmitting data over Tx line) */
-  USBD_CDC_ReceivePacket(&USBD_Device);
-}
-#endif
-/**
-  * @brief  ComPort_Config
-  *         Configure the COM Port with the parameters received from host.
-  * @param  None.
-  * @retval None.
-  * @note   When a configuration is not supported, a default value is used.
-  */
-static void ComPort_Config(void)
-{
-  /* set the Stop bit */
-  switch (LineCoding.format)
-  {
-  case 0:
-    UartHandle.Init.StopBits = UART_STOPBITS_1;
-    break;
-  case 2:
-    UartHandle.Init.StopBits = UART_STOPBITS_2;
-    break;
-  default:
-    UartHandle.Init.StopBits = UART_STOPBITS_1;
-    break;
-  }
-
-  /* set the parity bit */
-  switch (LineCoding.paritytype)
-  {
-  case 0:
-    UartHandle.Init.Parity = UART_PARITY_NONE;
-    break;
-  case 1:
-    UartHandle.Init.Parity = UART_PARITY_ODD;
-    break;
-  case 2:
-    UartHandle.Init.Parity = UART_PARITY_EVEN;
-    break;
-  default:
-    UartHandle.Init.Parity = UART_PARITY_NONE;
-    break;
-  }
-
-  /* set the data type : only 8bits and 9bits is supported */
-  switch (LineCoding.datatype)
-  {
-  case 0x07:
-    /* With this configuration a parity (Even or Odd) must be set */
-    UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-    break;
-  case 0x08:
-    if (UartHandle.Init.Parity == UART_PARITY_NONE)
-    {
-      UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-    }
-    else
-    {
-      UartHandle.Init.WordLength = UART_WORDLENGTH_9B;
-    }
-
-    break;
-  default:
-    UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-    break;
-  }
-
-  UartHandle.Init.BaudRate = LineCoding.bitrate;
-  UartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  UartHandle.Init.Mode = UART_MODE_TX_RX;
-
-}
-
 /**
   * @brief  TIM_Config: Configure TIMx timer
   * @param  None.
@@ -384,6 +293,71 @@ static void TIM_Config(void)
     /* Initialization Error */
     Error_Handler();
   }
+}
+
+static void CDC_tx_timer_init(){
+   
+
+    TIMx_CLK_ENABLE();
+
+    /* ##- Configure the NVIC for TIMx ######################################## */
+    /* Set Interrupt Group Priority */
+    HAL_NVIC_SetPriority(TIMx_IRQn, 5, 0);
+    
+    /* Enable the TIMx global Interrupt */
+    HAL_NVIC_EnableIRQ(TIMx_IRQn);
+    /* Configure the TIM Base generation ################################# */
+    TIM_Config();
+    
+    /* ##-4- Start the TIM Base generation in interrupt mode #################### */
+    /* Start Channel1 */
+    if (HAL_TIM_Base_Start_IT(&TimHandle) != HAL_OK)
+    {
+        /* Starting Error */
+        Error_Handler();
+    }
+}
+
+static void CDC_tx(uint8_t* buff, uint32_t len)
+{
+    uint8_t *buffptr;
+    uint32_t buffsize;
+
+    buffptr = UserTxBuffer + UserTxBufPtrIn;
+     if (UserTxBufPtrOut > UserTxBufPtrIn) /* rollback */
+     {
+         buffsize = UserTxBufPtrOut - UserTxBufPtrIn - 1;
+         if(len > buffsize)
+         {
+             memcpy(buffptr, buff, buffsize);
+             UserTxBufPtrIn +=buffsize;
+         }
+         else
+         {
+             memcpy(buffptr, buff, len);
+             UserTxBufPtrIn += len;
+         }   
+     }
+     else
+     {
+         if (UserTxBufPtrIn + len >= APP_RX_DATA_SIZE)
+         {
+             buffsize = APP_RX_DATA_SIZE - UserTxBufPtrIn - 1;
+             memcpy(buffptr, buff, buffsize);
+             UserTxBufPtrIn += len;
+
+             memcpy(UserTxBuffer,
+                    buff + buffsize,
+                    len - buffsize);
+             
+             UserTxBufPtrIn = len - buffsize;
+         }
+         else
+         {
+             memcpy(buffptr, buff, len);
+             UserTxBufPtrIn += len;
+         }
+     }
 }
 
 /**

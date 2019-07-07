@@ -3,7 +3,7 @@
 File contains constants for evaluation board http://wiki.stm32duino.com/index.php?title=Blue_Pill
 
 */
-
+#include "stm32f1xx_hal.h"
 
 /* LED */
 
@@ -12,3 +12,8 @@ File contains constants for evaluation board http://wiki.stm32duino.com/index.ph
 #define LED1_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOC_CLK_ENABLE()
 #define LED1_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOC_CLK_DISABLE()
  
+
+void BRD_led_init(void);
+void BRD_led_Toggle(void);
+void BRD_led_on(void);
+void BRD_led_off(void);

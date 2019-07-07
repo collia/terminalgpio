@@ -102,7 +102,9 @@ prg = env.Program(
     LIBS=['libstm32'],
     source = [
         'build/src/main.c',
-        'build/src/stm32f1xx_hal_msp.c',
+        'build/src/blue_pill.c',
+#        'build/src/stm32f1xx_hal_msp.c',
+        'build/src/terminal.c',
         'build/src/stm32f1xx_it.c',
         'build/src/system_stm32f1xx.c',
         'build/src/usbd_cdc_interface.c',
