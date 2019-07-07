@@ -94,7 +94,7 @@ static int8_t CDC_Itf_Receive(uint8_t * pbuf, uint32_t * Len);
 //static void ComPort_Config(void);
 static void TIM_Config(void);
 static void CDC_tx_timer_init(void);
-static void CDC_tx(uint8_t* buff, uint32_t len);
+static void CDC_tx(const uint8_t* buff, uint32_t len);
 
 USBD_CDC_ItfTypeDef USBD_CDC_fops = {
   CDC_Itf_Init,
@@ -218,6 +218,7 @@ static int8_t CDC_Itf_Control(uint8_t cmd, uint8_t * pbuf, uint16_t length)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
 {
+#if 1
     uint8_t *buffptr;
     uint32_t buffsize;
 
@@ -234,24 +235,32 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
         
         buffptr = UserTxBuffer + UserTxBufPtrOut;
         
-        //memset(&UserTxBuffer, 'a', 5);
-        //UserTxBuffer[6] = '\n';
-        //UserTxBuffer[7] = '\r';
         USBD_CDC_SetTxBuffer(&USBD_Device, (uint8_t *) buffptr,
                              buffsize);
         
         if (USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK)
         {
-            // LED_Toggle();
+            //BRD_led_toggle();
             UserTxBufPtrOut += buffsize;
-            if (UserTxBufPtrOut == APP_RX_DATA_SIZE)
+            if (UserTxBufPtrOut >= APP_RX_DATA_SIZE)
             {
                 UserTxBufPtrOut = 0;
             }
-
+            BRD_led_off();
         }
+        //BRD_led_off();
     }
-
+#else
+    memset(&UserTxBuffer, 'e', 5);
+    UserTxBuffer[6] = '\n';
+    UserTxBuffer[7] = '\r';
+    USBD_CDC_SetTxBuffer(&USBD_Device, (uint8_t *) UserTxBuffer,
+                             8);
+    if (USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK)
+    {
+        //BRD_led_off();
+    }
+#endif
 }
 
 
@@ -265,9 +274,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
   */
 static int8_t CDC_Itf_Receive(uint8_t * buf, uint32_t * len)
 {
+    BRD_led_on();
     //LED_Toggle();
     // echo test
     CDC_tx(buf, *len);
+
+    USBD_CDC_SetRxBuffer(&USBD_Device, UserRxBuffer);
+    USBD_CDC_ReceivePacket(&USBD_Device);
+  
     return (USBD_OK);
 }
 /**
@@ -318,7 +332,7 @@ static void CDC_tx_timer_init(){
     }
 }
 
-static void CDC_tx(uint8_t* buff, uint32_t len)
+static void CDC_tx(const uint8_t* buff, uint32_t len)
 {
     uint8_t *buffptr;
     uint32_t buffsize;

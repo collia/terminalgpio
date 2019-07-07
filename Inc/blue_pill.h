@@ -14,6 +14,6 @@ File contains constants for evaluation board http://wiki.stm32duino.com/index.ph
  
 
 void BRD_led_init(void);
-void BRD_led_Toggle(void);
+void BRD_led_toggle(void);
 void BRD_led_on(void);
 void BRD_led_off(void);

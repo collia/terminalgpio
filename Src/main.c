@@ -48,6 +48,7 @@
 /* Includes ------------------------------------------------------------------ */
 #include "main.h"
 #include "blue_pill.h"
+#include "terminal.h"
 
 /** @addtogroup STM32F1xx_HAL_Validation
   * @{
@@ -85,7 +86,7 @@ int main(void)
 
 
   BRD_led_init();
-  
+  BRD_led_off();
   /* Init Device Library */
   USBD_Init(&USBD_Device, &VCP_Desc, 0);
 
@@ -101,6 +102,8 @@ int main(void)
   /* Infinite loop */
   while (1)
   {
+      TERM_debug_print("I'm alive\n");
+      HAL_Delay(10000);
   }
 }
 
@@ -173,6 +176,9 @@ void Error_Handler(void)
   //BSP_LED_On(LED3);
   while (1)
   {
+      BRD_led_toggle();
+      /* Insert delay 100 ms */
+      HAL_Delay(100);
   }
 }
 
