@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 
+int yylex();
+int yy_scan_string(const char*);
+int yyparse(void);
+
 void yyerror(const char *str)
 {
 	fprintf(stderr,"error: %s\n",str);
@@ -12,30 +16,37 @@ int yywrap()
 	return 1;
 }
 
-main()
+int main()
 {
-    char input[40] = "heat on\ntarget temperature 30\n";
+    int rc;
+    char input[] = "gpio C port 16 mode on\n"
+        "gpio info\n"
+        "gpio A port 21 mode pwm freq 10 10% \n"
+        "gpio c port 16 mode off\n"
+        "gpio a port 0 mode off\n";
 
     /*Copy string into new buffer and Switch buffers*/
     yy_scan_string (input);
-    yyparse();
+    rc = yyparse();
+    printf(" rc=%d\n", rc);
 }
 
 char *heater="default";
 
 %}
 
-%token TOKHEATER TOKHEAT TOKTARGET TOKTEMPERATURE
+%token TOKGPIO TOKINFO TOKPORT TOKMODE TOKPWM TOKFREQ
 
 %union 
 {
 	int number;
-	char *string;
 }
 
 %token <number> STATE
 %token <number> NUMBER
-%token <string> WORD
+%token <number> PERCENT
+%token <number> PORT
+
 
 %%
 
@@ -45,29 +56,26 @@ commands:
 
 
 command:
-	heat_switch | target_set | heater_select
+	gpio_info | gpio_mode | gpio_pwm
 
-heat_switch:
-	TOKHEAT STATE 
+gpio_info:
+	TOKGPIO TOKINFO 
 	{
-		if($2)
-			printf("\tHeater '%s' turned on\n", heater);
-		else
-			printf("\tHeat '%s' turned off\n", heater);
+        printf("\tGPIO INFO\n");
+		
 	}
 	;
 
-target_set:
-	TOKTARGET TOKTEMPERATURE NUMBER
+gpio_mode:
+	TOKGPIO PORT TOKPORT NUMBER TOKMODE STATE
 	{
-		printf("\tHeater '%s' temperature set to %d\n",heater, $3);
+		printf("\tPort %d.%d state %d \n",$2, $4, $6);
 	}
 	;
 
-heater_select:
-	TOKHEATER WORD
+gpio_pwm:
+	TOKGPIO PORT TOKPORT NUMBER TOKMODE TOKPWM TOKFREQ NUMBER PERCENT
 	{
-		printf("\tSelected heater '%s'\n",$2);
-		heater=$2;
+		printf("\tPort %d.%d state pwm %d %d%% \n",$2, $4, $8, $9);
 	}
 	;
