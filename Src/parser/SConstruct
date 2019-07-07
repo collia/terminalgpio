@@ -1,0 +1,10 @@
+import os
+env = Environment(ENV = os.environ)
+
+env['YACCCOM'] = 'yacc -d $SOURCE'
+
+
+env.CFile(target = 'terminal.ll.c', source = 'terminal.l')
+env.CFile(target = ['y.tab.c', 'y.tab.h'], source = 'terminal.y')
+
+env.Program('termtest', ['y.tab.c', 'terminal.ll.c'])
