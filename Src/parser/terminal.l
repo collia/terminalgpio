@@ -18,3 +18,18 @@ freq                    return TOKFREQ;
 \n                      /* ignore end of line */;
 [ \t]+                  /* ignore whitespace */;
 %%
+
+/*Implementationofinputfunction*/
+int pipe_yyinput(char *buf,int max_size)
+{
+/*Readfromserialporttogetinput*/
+/*Returnnumberofcharsreceived*/
+    char input[] = "gpio C port 16 mode on\n"
+        "gpio info\n"
+        "gpio A port 21 mode pwm freq 10 10% \n"
+        "gpio c port 16 mode off\n"
+        "gpio a port 0 mode off\n";
+    memcpy(buf, input, max_size);
+    printf("yyinput %d\n", max_size);
+    return max_size;
+}
