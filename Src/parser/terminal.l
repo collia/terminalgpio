@@ -3,6 +3,9 @@
 #include <string.h>
 #include "y.tab.h"
 
+
+char TERM_get_input_buf(char* buf, int max_size);
+
 #define YY_INPUT(buf,result,max_size) result = TERM_get_input_buf(buf, max_size);
 
 //    { \

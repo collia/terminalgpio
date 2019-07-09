@@ -2,7 +2,7 @@
 
 int TERM_parser();
 void TERM_MOCK_init_input_buffer(const char* lines);
-
+const char * TERM_MOCK_get_output_buffer();
 
 static int test_help()
 {
@@ -10,6 +10,7 @@ static int test_help()
     char input[] ="help\n";
     TERM_MOCK_init_input_buffer(input);
     rc = TERM_parser();
+    printf("%s", TERM_MOCK_get_output_buffer());
     printf("%s rc = %d\n", __func__, rc);
 }
 

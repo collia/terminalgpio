@@ -114,5 +114,9 @@ gpio_pwm:
 help:
 	TOKHELP
 	{
-            TERM_debug_print("Help\n");
+            TERM_debug_print("Help:\n"
+                             "\tgpio info\n"
+                             "\tgpio A|B|C|D port [1-16] mode on|off\n"
+                             "\tgpio A|B|C|D port [1-16] mode pwm freq <Int> [0-100]%\n");
+
 	}	

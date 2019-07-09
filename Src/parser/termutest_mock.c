@@ -27,7 +27,10 @@ char TERM_get_input_buf(char* buf, int max_size)
 
 void TERM_debug_print( const char *line)
 {
-	printf("%s", line);
+    //int len = strlen(line);
+	//printf("%s", line);
+    strcpy(output_buffer_ptr, line);
+    output_buffer_ptr += strlen(line);
 }
 
 
@@ -36,5 +39,12 @@ void TERM_MOCK_init_input_buffer(const char* lines)
 {
 	strcpy(input_buffer, lines);
 	input_buffer_ptr = input_buffer;
+	output_buffer_ptr = output_buffer;
 	printf("%s", input_buffer);
+}
+
+
+const char * TERM_MOCK_get_output_buffer()
+{
+    return output_buffer;
 }
