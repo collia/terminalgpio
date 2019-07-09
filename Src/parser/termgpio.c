@@ -11,6 +11,8 @@ static TERM_gpio_port_info_TYP gpio_info[10] =
     {0, 0, false, false, 0, 0},
 };
 
+void yyerror(const char *str);
+
 TERM_gpio_port_info_TYP*  TERM_gpio_info()
 {
     return gpio_info;
@@ -27,12 +29,12 @@ int TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int freq, int
     }
     else
     {
-        printf("Error: incorrect port %d\n", port);
+        //yyerror("incorrect port\n");
         return -1;
     }
     if(line < 0 || line > TERM_GPIO_MAX_LINES_NUMBER)
     {
-        printf("Error: incorrect line %d\n", line);
+        //yyerror("incorrect line\n");
         return -2;
     }
 
@@ -48,6 +50,6 @@ int TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int freq, int
             return 0;
         }
     }
-    printf("Error: cannot find \n");
+    //yyerror("Port is not allowed \n");
     return -3;
 }

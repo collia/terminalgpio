@@ -15,4 +15,5 @@ env.Library("lib/terminal", ['y.tab.c',
                              'terminal.ll.c',
                              'termgpio.c']);
 
-env.Program(target='termtest', LIBS=['libterminal'], source=['termutest.c'] )
+env.Program(target='termtest', LIBS=['libterminal'], source=['termutest.c',
+                                                             'termutest_mock.c'] )
