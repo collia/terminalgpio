@@ -22,7 +22,7 @@ void yyerror(const char *str)
 
 int yywrap()
 {
-	return 1;
+    return 1;
 }
 
 int TERM_parser()
@@ -43,9 +43,9 @@ char *heater="default";
 
 %token TOKGPIO TOKINFO TOKPORT TOKMODE TOKPWM TOKFREQ TOKHELP
 
-%union 
+%union
 {
-	int number;
+    int number;
 }
 
 %token <number> STATE
@@ -57,20 +57,24 @@ char *heater="default";
 %%
 
 commands:
-	| commands command
-	;
+    | commands command
+    ;
 
 
 command:
-	gpio_info | gpio_mode | gpio_pwm | help
+    gpio_info | gpio_mode | gpio_pwm | help
 
 gpio_info:
-	TOKGPIO TOKINFO 
-	{
+    TOKGPIO TOKINFO
+    {
             char buffer[TERM_PRINT_BUFFER_LENGTH];
             TERM_gpio_port_info_TYP * data;
-            printf("GPIO INFO\n");
-	    data = TERM_gpio_info();
+            //printf("GPIO INFO\n");
+        data = TERM_gpio_get_info();
+        if(data == 0)
+        {
+        return -1;
+        }
             while(data->port != 0 && data->line != 0)
             {
                 if(data->is_PWM)
@@ -80,43 +84,43 @@ gpio_info:
                 }
                 else
                 {
-                    snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t %s\n", data->port, data->line, data->level?"on":"off");
+                    snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%s\n", data->port, data->line, data->level?"on":"off");
                     TERM_debug_print(buffer);
                 }
                 data++;
         }
-	}
-	;
+    }
+    ;
 
 gpio_mode:
-	TOKGPIO PORT TOKPORT NUMBER TOKMODE STATE
-	{
+    TOKGPIO PORT TOKPORT NUMBER TOKMODE STATE
+    {
             char buffer[TERM_PRINT_BUFFER_LENGTH];
-	    snprintf(buffer, TERM_PRINT_BUFFER_LENGTH, "Port %d.%d state %d \n",$2, $4, $6);
+        snprintf(buffer, TERM_PRINT_BUFFER_LENGTH, "Port %d.%d state %d\n",$2, $4, $6);
             TERM_debug_print(buffer);
             if(TERM_gpio_set_mode($2, $4, $6, false, 0, 0) < 0)
             {
                 return -1;
             }
-	}
-	;
+    }
+    ;
 
 gpio_pwm:
-	TOKGPIO PORT TOKPORT NUMBER TOKMODE TOKPWM TOKFREQ NUMBER PERCENT
-	{
+    TOKGPIO PORT TOKPORT NUMBER TOKMODE TOKPWM TOKFREQ NUMBER PERCENT
+    {
             char buffer[TERM_PRINT_BUFFER_LENGTH];
-            snprintf(buffer, TERM_PRINT_BUFFER_LENGTH, "Port %d.%d state pwm %d %d%% \n",$2, $4, $8, $9);
+            snprintf(buffer, TERM_PRINT_BUFFER_LENGTH, "Port %d.%d state pwm %d %d%%\n",$2, $4, $8, $9);
             TERM_debug_print(buffer);
             if(TERM_gpio_set_mode($2, $4, false, true, $8, $9) < 0)
                 return -1;
-	}
-	;
+    }
+    ;
 help:
-	TOKHELP
-	{
+    TOKHELP
+    {
             TERM_debug_print("Help:\n"
                              "\tgpio info\n"
                              "\tgpio A|B|C|D port [1-16] mode on|off\n"
                              "\tgpio A|B|C|D port [1-16] mode pwm freq <Int> [0-100]%\n");
 
-	}	
+    }   
