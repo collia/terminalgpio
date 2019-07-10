@@ -19,4 +19,6 @@ TERM_gpio_port_info_TYP* TERM_gpio_get_info();
 void TERM_gpio_set_info(TERM_gpio_port_info_TYP* gpio_table);
 int TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int freq, int duty);
 
+int TERM_parser();
+
 #endif //_TERMGPIO_H_

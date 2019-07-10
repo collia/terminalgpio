@@ -1,0 +1,13 @@
+
+#env = Environment()
+Import('env')
+
+env['YACCCOM'] = 'yacc -d $SOURCE -o $TARGET'
+
+
+env.CFile(target = 'terminal.ll.c', source = 'terminal.l')
+env.CFile(target = ['y.tab.c', 'y.tab.h'], source = 'terminal.y')
+
+env.Library("lib/terminal", ['y.tab.c',
+                             'terminal.ll.c',
+                             'termgpio.c']);

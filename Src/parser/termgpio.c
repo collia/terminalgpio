@@ -21,7 +21,7 @@ void TERM_gpio_set_info(TERM_gpio_port_info_TYP* gpio_table)
 int TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int freq, int duty)
 {
     char cport;
-    //int num_records = sizeof(TERM_gpio_info_table)/sizeof(TERM_gpio_info_table[0]);
+
     TERM_gpio_port_info_TYP *gpio_info = TERM_gpio_info_table;
 
     if(TERM_gpio_info_table == 0)

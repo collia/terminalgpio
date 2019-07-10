@@ -46,9 +46,17 @@
   */
 
 /* Includes ------------------------------------------------------------------ */
-#include "main.h"
+#include "stm32f1xx_hal.h"
+#include "usbd_core.h"
+#include "stm32f1xx_hal_pcd.h"
+#include "usbd_desc.h"
+#include "usbd_cdc.h" 
+#include "usbd_cdc_interface.h"
+
+#include "termgpio.h"
 #include "blue_pill.h"
 #include "terminal.h"
+#include "main.h"
 
 /** @addtogroup STM32F1xx_HAL_Validation
   * @{
@@ -99,11 +107,13 @@ int main(void)
   /* Start Device Process */
   USBD_Start(&USBD_Device);
 
+  TERM_gpio_set_info(BRD_gpio_def_config);
   /* Infinite loop */
   while (1)
   {
-      TERM_debug_print("I'm alive\n");
-      HAL_Delay(10000);
+      TERM_parser();
+      //TERM_debug_print("I'm alive\n");
+      //HAL_Delay(10000);
   }
 }
 

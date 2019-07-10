@@ -1,3 +1,4 @@
+%option noyyalloc noyyfree noyyrealloc
 %{
 #include <stdio.h>
 #include <string.h>
@@ -12,6 +13,10 @@ char TERM_get_input_buf(char* buf, int max_size);
     int c = getchar() ; \
     result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
     }
+
+void* yyalloc(size_t size) { return 0;}
+void* yyrealloc(void* ptr, size_t size) { return 0;}
+void yyfree(void* ptr) {return;}
 
 %}
 %%

@@ -1,19 +1,12 @@
 import os
 env = Environment(ENV = os.environ)
 
-env['YACCCOM'] = 'yacc -d $SOURCE'
-
-
-env.CFile(target = 'terminal.ll.c', source = 'terminal.l')
-env.CFile(target = ['y.tab.c', 'y.tab.h'], source = 'terminal.y')
-
 env.Append(LIBPATH = [
     'lib'
     ])
 
-env.Library("lib/terminal", ['y.tab.c',
-                             'terminal.ll.c',
-                             'termgpio.c']);
+Export('env')
+SConscript(['SConscript'])
 
 env.Program(target='termtest', LIBS=['libterminal'], source=['termutest.c',
                                                              'termutest_mock.c'] )

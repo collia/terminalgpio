@@ -54,3 +54,8 @@ void TERM_debug_print(const char *line)
         return;
     low_tx_handler((uint8_t*)line, strlen(line));
 }
+
+char TERM_get_input_buf(char* buf, int max_size)
+{
+    return 'A';
+}

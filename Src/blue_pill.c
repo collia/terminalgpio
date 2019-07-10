@@ -3,8 +3,17 @@
 File contains controls for evaluation board http://wiki.stm32duino.com/index.php?title=Blue_Pill
 
 */
-
+#include "termgpio.h"
 #include "blue_pill.h"
+
+TERM_gpio_port_info_TYP BRD_gpio_def_config[] =
+{
+    {'A', 1, false, false, 0, 0},
+    {'B', 2, false, false, 0, 0},
+    {'B', 3, false, false, 0, 0},
+    {0, 0, false, false, 0, 0},
+
+};
 
 void BRD_led_init()
 {

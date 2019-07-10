@@ -50,13 +50,13 @@
 #define __MAIN_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f1xx_hal.h"
-#include "blue_pill.h"
-#include "usbd_core.h"
-#include "stm32f1xx_hal_pcd.h"
-#include "usbd_desc.h"
-#include "usbd_cdc.h" 
-#include "usbd_cdc_interface.h"
+//#include "stm32f1xx_hal.h"
+//#include "blue_pill.h"
+//#include "usbd_core.h"
+//#include "stm32f1xx_hal_pcd.h"
+//#include "usbd_desc.h"
+//#include "usbd_cdc.h" 
+//#include "usbd_cdc_interface.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

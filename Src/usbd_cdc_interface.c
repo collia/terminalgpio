@@ -46,8 +46,17 @@
   */
 
 /* Includes ------------------------------------------------------------------ */
-#include "main.h"
+#include "stm32f1xx_hal.h"
+#include "usbd_core.h"
+#include "stm32f1xx_hal_pcd.h"
+#include "usbd_desc.h"
+#include "usbd_cdc.h" 
+#include "usbd_cdc_interface.h"
+
 #include "terminal.h"
+#include "termgpio.h"
+#include "blue_pill.h"
+#include "main.h"
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
   * @{
@@ -60,8 +69,8 @@
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
-#define APP_RX_DATA_SIZE  2048
-#define APP_TX_DATA_SIZE  2048
+#define APP_RX_DATA_SIZE  1024
+#define APP_TX_DATA_SIZE  1024
 
 /* Private macro ------------------------------------------------------------- */
 /* Private variables --------------------------------------------------------- */

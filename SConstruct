@@ -18,11 +18,13 @@ stm32cubef1_middlewears_path = '../stm32cubef1/Middlewares/ST/'
 
 
 stm_family='STM32F103XB'
-stm_device='STM32F103X6'
+#stm_device='STM32F103X6'
+stm_device='STM32F103XB'
 
 # include locations
 env.Append(CPPPATH = [
-    '#Inc', 
+    '#Inc',
+    '#Src/parser', 
     '#' + stm32cubef1_hal_path + 'Inc',
     '#' + stm32cubef1_cmsis_path +'Include',
     '#' + stm32cubef1_cmsis_path +'Device/ST/STM32F1xx/Include',
@@ -31,8 +33,13 @@ env.Append(CPPPATH = [
     ])
 
 env.Append(LIBPATH = [
-    'lib'
+    'lib',
+    'Src/parser/lib/'
     ])
+
+Export('env')
+
+SConscript(['Src/parser/SConscript'])
 
 # compiler flags
 env.Append(CCFLAGS = [
@@ -99,7 +106,7 @@ env.VariantDir('build/src/', 'Src', duplicate=0)
 # build everything
 prg = env.Program(
     target = 'main',
-    LIBS=['libstm32'],
+    LIBS=['libstm32', 'libterminal'],
     source = [
         'build/src/main.c',
         'build/src/blue_pill.c',

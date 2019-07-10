@@ -17,3 +17,6 @@ void BRD_led_init(void);
 void BRD_led_toggle(void);
 void BRD_led_on(void);
 void BRD_led_off(void);
+
+
+extern TERM_gpio_port_info_TYP BRD_gpio_def_config[];

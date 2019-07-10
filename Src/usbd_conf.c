@@ -46,7 +46,15 @@
   */
 
 /* Includes ------------------------------------------------------------------ */
+#include "stm32f1xx_hal.h"
+#include "usbd_core.h"
+#include "stm32f1xx_hal_pcd.h"
+#include "usbd_desc.h"
+#include "usbd_cdc.h" 
+#include "usbd_cdc_interface.h"
+
 #include "main.h"
+
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
