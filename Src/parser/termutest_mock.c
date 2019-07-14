@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 //#include "terminal.h"
+#include <stdlib.h>
 
 #define TERM_MOCK_INPUT_BUFFER_SIZE 1024
 #define TERM_MOCK_OUTPUT_BUFFER_SIZE 1024
@@ -47,4 +48,10 @@ void TERM_MOCK_init_input_buffer(const char* lines)
 const char * TERM_MOCK_get_output_buffer()
 {
     return output_buffer;
+}
+
+void Error_Handler(void)
+{
+    printf("ERROR!\n");
+    exit(1);
 }

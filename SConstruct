@@ -50,13 +50,18 @@ env.Append(CCFLAGS = [
     '-std=gnu11',
     '-Wall',
     '-g'
-    ])
+])
 
 # linker flags
 #    '-Wl,--gc-sections,-Map=main.elf.map,-cref,-u,Reset_Handler',
 env.Append(LINKFLAGS = [
     #'-mcpu=cortex-m3',
     '-mthumb',
+    '-mthumb',
+    '-specs=nano.specs',
+    '-specs=nosys.specs',
+    '-mfpu=fpv4-sp-d16',
+    '-mfloat-abi=hard',
     '-Wl,--gc-sections,-Map=main.elf.map,-cref,-u,Reset_Handler,--trace',
      '-T', 'Src/gcc/linker/'+ stm_device + '_FLASH.ld'
     ]) 

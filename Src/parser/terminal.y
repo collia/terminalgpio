@@ -1,6 +1,6 @@
 %{
-#include <stdio.h>
-#include <string.h>
+//#include <stdio.h>
+//#include <string.h>
 #include "termgpio.h"
 
 #define TERM_PRINT_BUFFER_LENGTH 100

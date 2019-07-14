@@ -1,5 +1,7 @@
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "termgpio.h"
 
 static TERM_gpio_port_info_TYP *TERM_gpio_info_table = 0;
@@ -61,4 +63,51 @@ int TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int freq, int
     }
     yyerror("Port is not allowed");
     return -3;
+}
+
+
+int TERM_gpio_atoi(const char *str)
+{
+    return atoi(str);
+}
+
+int TERM_gpio_strcmp(const char *str1, const char *str2)
+{
+    return strcmp(str1, str2);
+}
+
+void TERM_gpio_memset(void* data, char val, int len)
+{
+     memset(data, val, len);
+}
+
+static char memory_pool_8[8];
+static char memory_pool_64[64];
+static char memory_pool_16400[16400];
+
+void* TERM_gpio_malloc(size_t size)
+{
+    printf("size = %zu\n", size);
+    if (size <= 8)
+    {
+        return memory_pool_8;
+    }
+    else if (size <= 64)
+    {
+        return memory_pool_64;
+    }
+    else if (size <= 16400)
+    {
+        return memory_pool_16400;
+    }
+    return 0;
+}
+
+void* TERM_gpio_realloc(void *ptr, size_t size)
+{
+    return 0;
+}
+void* TERM_gpio_free(void *ptr)
+{
+    return 0;
 }
