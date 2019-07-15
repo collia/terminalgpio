@@ -8,7 +8,6 @@ typedef unsigned char bool;
 #define false 0
 
 //typedef unsigned int size_t;
-#define snprintf(...) 
 
 #define TERM_GPIO_MAX_LINES_NUMBER 16
 
@@ -24,7 +23,9 @@ typedef struct
 
 TERM_gpio_port_info_TYP* TERM_gpio_get_info();
 void TERM_gpio_set_info(TERM_gpio_port_info_TYP* gpio_table);
-int TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int freq, int duty);
+TERM_gpio_port_info_TYP* TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int freq, int duty);
+int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data);
+
 
 int TERM_parser();
 

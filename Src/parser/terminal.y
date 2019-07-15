@@ -3,7 +3,6 @@
 //#include <string.h>
 #include "termgpio.h"
 
-#define TERM_PRINT_BUFFER_LENGTH 100
 
 int yylex();
 int yy_scan_string(const char*);
@@ -67,52 +66,45 @@ command:
 gpio_info:
     TOKGPIO TOKINFO
     {
-            char buffer[TERM_PRINT_BUFFER_LENGTH];
             TERM_gpio_port_info_TYP * data;
-            //printf("GPIO INFO\n");
-        data = TERM_gpio_get_info();
-        if(data == 0)
-        {
-        return -1;
-        }
+    
+            data = TERM_gpio_get_info();
+            if(data == 0)
+            {
+                return -1;
+            }
             while(data->port != 0 && data->line != 0)
             {
-                if(data->is_PWM)
+                if (TERM_gpio_print_port_info(data) < 0)
                 {
-                    snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%d Hz %d%%\n", data->port, data->line, data->freq, data->duty);
-                    TERM_debug_print(buffer);
-                }
-                else
-                {
-                    snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%s\n", data->port, data->line, data->level?"on":"off");
-                    TERM_debug_print(buffer);
+                    return -1;
                 }
                 data++;
-        }
+            }
     }
     ;
 
 gpio_mode:
     TOKGPIO PORT TOKPORT NUMBER TOKMODE STATE
     {
-            char buffer[TERM_PRINT_BUFFER_LENGTH];
-        snprintf(buffer, TERM_PRINT_BUFFER_LENGTH, "Port %d.%d state %d\n",$2, $4, $6);
-            TERM_debug_print(buffer);
-            if(TERM_gpio_set_mode($2, $4, $6, false, 0, 0) < 0)
-            {
-                return -1;
-            }
+        TERM_gpio_port_info_TYP * port;
+        port = TERM_gpio_set_mode($2, $4, $6, false, 0, 0);
+        if(port <= 0) {
+            return -1;
+        }
+        TERM_gpio_print_port_info(port);
     }
     ;
 
 gpio_pwm:
     TOKGPIO PORT TOKPORT NUMBER TOKMODE TOKPWM TOKFREQ NUMBER PERCENT
     {
-            char buffer[TERM_PRINT_BUFFER_LENGTH];
-            snprintf(buffer, TERM_PRINT_BUFFER_LENGTH, "Port %d.%d state pwm %d %d%%\n",$2, $4, $8, $9);
-            TERM_debug_print(buffer);
-            if(TERM_gpio_set_mode($2, $4, false, true, $8, $9) < 0)
-                return -1;
+        TERM_gpio_port_info_TYP * port;
+        port = TERM_gpio_set_mode($2, $4, false, true, $8, $9);
+        if(port <= 0) {
+            return -1;
+        }
+        TERM_gpio_print_port_info(port);
     }
     ;
 help:

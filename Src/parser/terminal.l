@@ -10,6 +10,7 @@
 #define YY_NO_UNISTD_H
 #define YY_NEED_STRLEN
 #define YY_USE_CUSTOM_ALLOCATOR
+#define YY_BUF_SIZE 1024
 
 char TERM_get_input_buf(char* buf, int max_size);
 void Error_Handler(void);

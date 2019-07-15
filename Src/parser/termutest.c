@@ -154,7 +154,7 @@ static int test_set_off()
         "B.2\toff\n"
         "B.3\ton\n"
         "B.4\t50 Hz 50%\n"
-        "Port 1.3 state 0\n"
+        "A.1\ton\n"
         "A.1\toff\n"
         "B.2\toff\n"
         "B.3\toff\n"
