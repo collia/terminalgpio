@@ -284,7 +284,10 @@ void parser_tests()
 
 }
 
+extern void test_ring_buffer();
+
 int main()
 {
-   parser_tests();     
+   parser_tests();
+   test_ring_buffer();
 }

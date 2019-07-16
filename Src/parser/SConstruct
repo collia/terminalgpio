@@ -8,4 +8,5 @@ Export('env')
 SConscript(['SConscript'])
 
 env.Program(target='termtest', LIBS=['libterminal'], source=['termutest.c',
-                                                             'termutest_mock.c'] )
+                                                             'termutest_mock.c',
+                                                             'ringbutest.c'] )
