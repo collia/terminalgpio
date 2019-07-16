@@ -20,7 +20,7 @@
     uint32_t __buffsize;\
     __buffptr = name##Buffer + name##BufPtrIn;             \
     if (name##BufPtrOut > name##BufPtrIn) {              \
-        __buffsize = name##BufPtrOut - name##BufPtrIn - 1;     \
+        __buffsize = name##BufPtrOut - name##BufPtrIn ;     \
         if(len > __buffsize) {                               \
             memcpy(__buffptr, data, __buffsize);               \
             name##BufPtrIn +=__buffsize;                      \
@@ -28,15 +28,15 @@
             memcpy(__buffptr, data, len);                    \
             name##BufPtrIn += len;                         \
         }                                                 \
-    } else {                                              \
-        if (name##BufPtrIn + len >= sizeof(name##Buffer)) {        \
-            __buffsize =  sizeof(name##Buffer) - name##BufPtrIn ;    \
+    } else {                                                       \
+        if (name##BufPtrIn + len >= sizeof(name##Buffer)) {           \
+            __buffsize =  sizeof(name##Buffer) - name##BufPtrIn ;         \
             memcpy(__buffptr, data, __buffsize);                        \
-            __buffsize = name##BufPtrOut;                                \
-            if(len -  __buffsize > __buffsize) {                        \
-                memcpy(name##Buffer, data, __buffsize);                  \
+            name##BufPtrIn = 0;                                          \
+            if(len -  __buffsize > name##BufPtrOut) {                    \
+                memcpy(name##Buffer, data + __buffsize, name##BufPtrOut); \
                 name##BufPtrIn =__buffsize;                              \
-            } else {                                                    \
+            } else if ( name##BufPtrIn !=  name##BufPtrOut) {              \
                 memcpy(name##Buffer,                                     \
                        data + __buffsize,                               \
                        len - __buffsize);                               \
@@ -50,3 +50,17 @@
     }
 
 
+#define RING_BUFFER_GET(name, dataptr, len)                 \
+    if (name##BufPtrOut != name##BufPtrIn) {                   \
+        if (name##BufPtrOut > name##BufPtrIn){                  \
+            len = sizeof(name##Buffer) - name##BufPtrOut;       \
+            dataptr = &(name##Buffer[name##BufPtrOut]);       \
+            name##BufPtrOut = 0;                               \
+        } else {                                              \
+            len = name##BufPtrIn - name##BufPtrOut;  \
+            dataptr = &(name##Buffer[name##BufPtrOut]); \
+            name##BufPtrOut = name##BufPtrIn;             \
+        }                                               \
+    } else {                                    \
+          len = 0;                              \
+    }
