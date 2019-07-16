@@ -126,7 +126,7 @@ static int test_set_on()
         "B.2\toff\n"
         "B.3\ton\n"
         "B.4\t50 Hz 50%\n"
-        "Port 0.1 state 1\n"
+        "A.1\ton\n"
         "A.1\ton\n"
         "B.2\toff\n"
         "B.3\ton\n"
@@ -154,7 +154,7 @@ static int test_set_off()
         "B.2\toff\n"
         "B.3\ton\n"
         "B.4\t50 Hz 50%\n"
-        "A.1\ton\n"
+        "B.3\toff\n"
         "A.1\toff\n"
         "B.2\toff\n"
         "B.3\toff\n"
@@ -182,7 +182,7 @@ static int test_set_pwm_on()
         "B.2\toff\n"
         "B.3\ton\n"
         "B.4\t50 Hz 50%\n"
-        "Port 0.1 state pwm 20 10%\n"
+        "A.1\t20 Hz 10%\n"
         "A.1\t20 Hz 10%\n"
         "B.2\toff\n"
         "B.3\ton\n"
@@ -211,7 +211,7 @@ static int test_set_pwm_off()
         "B.2\toff\n"
         "B.3\ton\n"
         "B.4\t50 Hz 50%\n"
-        "Port 1.4 state 1\n"
+        "B.4\ton\n"
         "A.1\toff\n"
         "B.2\toff\n"
         "B.3\ton\n"
@@ -239,7 +239,6 @@ static int test_error_incorrect_port()
         "B.2\toff\n"
         "B.3\ton\n"
         "B.4\t50 Hz 50%\n"
-        "Port 0.16 state 1\n"
         "Error: Port is not allowed\n";
     PRINT_RESULT(test_negative_term(
                 gpio_info,
@@ -272,9 +271,8 @@ static int test_error_incorrect_gpio()
 }
 
 
-int main()
+void parser_tests()
 {
-        
     test_help();
     test_info();
     test_set_on();
@@ -283,4 +281,10 @@ int main()
     test_set_pwm_off();
     test_error_incorrect_port();
     test_error_incorrect_gpio();
+
+}
+
+int main()
+{
+   parser_tests();     
 }
