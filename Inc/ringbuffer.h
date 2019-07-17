@@ -50,17 +50,29 @@
     }
 
 
-#define RING_BUFFER_GET(name, dataptr, len)                 \
-    if (name##BufPtrOut != name##BufPtrIn) {                   \
-        if (name##BufPtrOut > name##BufPtrIn){                  \
-            len = sizeof(name##Buffer) - name##BufPtrOut;       \
-            dataptr = &(name##Buffer[name##BufPtrOut]);       \
-            name##BufPtrOut = 0;                               \
+#define RING_BUFFER_GET(name, dataptr, len) {                       \
+        uint32_t __aval_len;                                        \
+        if (name##BufPtrOut != name##BufPtrIn) {                       \
+            if (name##BufPtrOut > name##BufPtrIn){                    \
+                __aval_len = sizeof(name##Buffer) - name##BufPtrOut;  \
+                dataptr = &(name##Buffer[name##BufPtrOut]);           \
+                if(__aval_len <= len) {                              \
+                    len = __aval_len;                               \
+                    name##BufPtrOut = 0;                             \
+                } else {                                            \
+                    name##BufPtrOut += len;                          \
+                }                                                   \
+            } else {                                                \
+                __aval_len = name##BufPtrIn - name##BufPtrOut;        \
+                dataptr = &(name##Buffer[name##BufPtrOut]);           \
+                if(__aval_len <= len) {                              \
+                    len = __aval_len;                               \
+                    name##BufPtrOut = name##BufPtrIn;                 \
+                } else {                                            \
+                    name##BufPtrOut += len;                         \
+                }                                                  \
+            }                                                 \
         } else {                                              \
-            len = name##BufPtrIn - name##BufPtrOut;  \
-            dataptr = &(name##Buffer[name##BufPtrOut]); \
-            name##BufPtrOut = name##BufPtrIn;             \
-        }                                               \
-    } else {                                    \
-          len = 0;                              \
+            len = 0;                                          \
+        }                                                     \
     }

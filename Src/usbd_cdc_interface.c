@@ -57,7 +57,7 @@
 #include "termgpio.h"
 #include "blue_pill.h"
 #include "main.h"
-#include "ring_buffer.h"
+#include "ringbuffer.h"
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
   * @{
@@ -76,18 +76,12 @@
 /* Private macro ------------------------------------------------------------- */
 /* Private variables --------------------------------------------------------- */
 
-uint8_t UserRxBuffer[APP_RX_DATA_SIZE]; /* Received Data over USB are stored in 
+RING_BUFFER_DECL(UserRx, APP_RX_DATA_SIZE); /* Received Data over USB are stored in 
                                          * this buffer */
-//uint8_t UserTxBuffer[APP_TX_DATA_SIZE]; /* Received Data over UART (CDC
-//                                         * interface) are stored in this buffer 
-//                                         */
-//uint32_t BuffLength;
-//uint32_t UserTxBufPtrIn = 0;    /* Increment this pointer or roll it back to
-//                                 * start address when data are received over
-//                                 * USART */
-//uint32_t UserTxBufPtrOut = 0;   /* Increment this pointer or roll it back to
-//                                 * start address when data are sent over USB */
-RING_BUFFER_DECL(UserTx, APP_RX_DATA_SIZE)
+
+RING_BUFFER_DECL(UserTx, APP_RX_DATA_SIZE) /* Received Data over UART (CDC
+                                         * interface) are stored in this buffer 
+                                         */
 
 /* UART handler declaration */
 UART_HandleTypeDef UartHandle;
@@ -106,6 +100,7 @@ static int8_t CDC_Itf_Receive(uint8_t * pbuf, uint32_t * Len);
 static void TIM_Config(void);
 static void CDC_tx_timer_init(void);
 static void CDC_tx(const uint8_t* buff, uint32_t len);
+static int CDC_rx(const uint8_t* buff, uint32_t max_len);
 
 USBD_CDC_ItfTypeDef USBD_CDC_fops = {
   CDC_Itf_Init,
@@ -126,12 +121,12 @@ USBD_CDC_ItfTypeDef USBD_CDC_fops = {
 static int8_t CDC_Itf_Init(void)
 {
 
-    TERM_init(CDC_tx);
+    TERM_init(CDC_tx, CDC_rx);
     
     CDC_tx_timer_init();
     /* ## Set Application Buffers ############################################ */
-    USBD_CDC_SetTxBuffer(&USBD_Device, UserTxBuffer, 0);
-    USBD_CDC_SetRxBuffer(&USBD_Device, UserRxBuffer);
+    USBD_CDC_SetTxBuffer(&USBD_Device, RING_BUFFER(UserTx), 0);
+    USBD_CDC_SetRxBuffer(&USBD_Device, RING_BUFFER(UserRx));
 
     return (USBD_OK);
 }
@@ -231,35 +226,20 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
 {
 #if 1
     uint8_t *buffptr;
-    uint32_t buffsize;
+    uint32_t buffsize = APP_TX_DATA_SIZE;
 
-    if (UserTxBufPtrOut != UserTxBufPtrIn)
+    RING_BUFFER_GET(UserTx, buffptr, buffsize);
+    if (buffsize)
     {
-        if (UserTxBufPtrOut > UserTxBufPtrIn) /* rollback */
-        {
-            buffsize = APP_RX_DATA_SIZE - UserTxBufPtrOut;
-        }
-        else
-        {
-            buffsize = UserTxBufPtrIn - UserTxBufPtrOut;
-        }
-        
-        buffptr = UserTxBuffer + UserTxBufPtrOut;
-        
+       
         USBD_CDC_SetTxBuffer(&USBD_Device, (uint8_t *) buffptr,
                              buffsize);
         
-        if (USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK)
+        if (USBD_CDC_TransmitPacket(&USBD_Device) != USBD_OK)
         {
-            //BRD_led_toggle();
-            UserTxBufPtrOut += buffsize;
-            if (UserTxBufPtrOut >= APP_RX_DATA_SIZE)
-            {
-                UserTxBufPtrOut = 0;
-            }
-            BRD_led_off();
+            RING_BUFFER_INSERT(UserTx, buffptr, buffsize);
         }
-        //BRD_led_off();
+        BRD_led_off();
     }
 #else
     memset(&UserTxBuffer, 'e', 5);
@@ -286,11 +266,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
 static int8_t CDC_Itf_Receive(uint8_t * buf, uint32_t * len)
 {
     BRD_led_on();
-    //LED_Toggle();
+
+    RING_BUFFER_INSERT(UserRx, buf, *len);
     // echo test
     CDC_tx(buf, *len);
 
-    USBD_CDC_SetRxBuffer(&USBD_Device, UserRxBuffer);
+    USBD_CDC_SetRxBuffer(&USBD_Device,&RING_BUFFER(UserRx)[RING_BUFFER_IN_PTR(UserRx)]);
     USBD_CDC_ReceivePacket(&USBD_Device);
   
     return (USBD_OK);
@@ -345,44 +326,15 @@ static void CDC_tx_timer_init(){
 
 static void CDC_tx(const uint8_t* buff, uint32_t len)
 {
-    uint8_t *buffptr;
-    uint32_t buffsize;
+    RING_BUFFER_INSERT(UserTx, buff, len);
+}
 
-    buffptr = UserTxBuffer + UserTxBufPtrIn;
-     if (UserTxBufPtrOut > UserTxBufPtrIn) /* rollback */
-     {
-         buffsize = UserTxBufPtrOut - UserTxBufPtrIn - 1;
-         if(len > buffsize)
-         {
-             memcpy(buffptr, buff, buffsize);
-             UserTxBufPtrIn +=buffsize;
-         }
-         else
-         {
-             memcpy(buffptr, buff, len);
-             UserTxBufPtrIn += len;
-         }   
-     }
-     else
-     {
-         if (UserTxBufPtrIn + len >= APP_RX_DATA_SIZE)
-         {
-             buffsize = APP_RX_DATA_SIZE - UserTxBufPtrIn - 1;
-             memcpy(buffptr, buff, buffsize);
-             UserTxBufPtrIn += len;
 
-             memcpy(UserTxBuffer,
-                    buff + buffsize,
-                    len - buffsize);
-             
-             UserTxBufPtrIn = len - buffsize;
-         }
-         else
-         {
-             memcpy(buffptr, buff, len);
-             UserTxBufPtrIn += len;
-         }
-     }
+static int CDC_rx(const uint8_t* buff, uint32_t max_len)
+{
+    uint32_t len = max_len;
+    RING_BUFFER_GET(UserRx, buff, len);
+    return len;
 }
 
 /**
