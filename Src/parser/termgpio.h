@@ -30,6 +30,7 @@ int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data);
 int TERM_parser();
 
 int TERM_gpio_atoi(const char *str);
+int TERM_gpio_itona(const int value, char *str, const int max_size );
 int TERM_gpio_strcmp(const char *str1, const char *str2);
 void TERM_gpio_memset(void* data, char val, int len);
 

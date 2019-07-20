@@ -41,7 +41,7 @@ void TERM_MOCK_init_input_buffer(const char* lines)
 	strcpy(input_buffer, lines);
 	input_buffer_ptr = input_buffer;
 	output_buffer_ptr = output_buffer;
-	printf("%s", input_buffer);
+	//printf("%s", input_buffer);
 }
 
 

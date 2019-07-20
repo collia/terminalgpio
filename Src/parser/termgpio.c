@@ -2,13 +2,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "termgpio.h"
+
 
 #define TERM_PRINT_BUFFER_LENGTH 100
 
 static TERM_gpio_port_info_TYP *TERM_gpio_info_table = 0;
 
 void yyerror(const char *str);
+void TERM_debug_print(const char *line);
+
 
 TERM_gpio_port_info_TYP*  TERM_gpio_get_info()
 {
@@ -71,41 +75,163 @@ TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool
 int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
 {
     char buffer[TERM_PRINT_BUFFER_LENGTH];
+    char *bp = buffer;
     if(data->is_PWM)
     {
         //snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%d Hz %d%%\n", data->port, data->line, data->freq, data->duty);
-        buffer[0] = 'A';
-        buffer[1] = 'T';
-        buffer[2] = ' ';
-        buffer[3] = 'P';
-        buffer[4] = 'W';
-        buffer[5] = 'M';
-        buffer[6] = 0;
+        *bp++=data->port;
+        *bp++='.';
+        bp += TERM_gpio_itona(data->line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
+        *bp++='\t';
+        bp += TERM_gpio_itona(data->freq, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+        *bp++=' ';
+        *bp++='H';
+        *bp++='z';
+        *bp++=' ';
+        bp += TERM_gpio_itona(data->duty, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+        *bp++='%';
+        *bp++='\r';
+        *bp++='\n';
+        *bp++=0;
         TERM_debug_print(buffer);
     }
     else
     {
         //snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%s\n", data->port, data->line, data->level?"on":"off");
-        buffer[0] = 'A';
-        buffer[1] = 'T';
-        buffer[2] = ' ';
-        buffer[3] = 'O';
-        buffer[4] = 'K';
-        buffer[5] = 0;
+        *bp++=data->port;
+        *bp++='.';
+        bp += TERM_gpio_itona(data->line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
+        *bp++='\t';
+        if(data->level)
+        {
+            *bp++='o';
+            *bp++='n';
+        }
+        else
+        {
+            *bp++='o';
+            *bp++='f';
+            *bp++='f';
+        }
+        *bp++='\r';
+        *bp++='\n';
+        *bp++=0;
         TERM_debug_print(buffer);
     }
     return 0;
 }
 
-
+// Allowed only simple dec format. returns 0 in error case
 int TERM_gpio_atoi(const char *str)
 {
-    return 0;
+    const char *letter = str;;
+    int result = 0;
+    int sign = 1;
+    if(*letter == '-')
+    {
+        sign = -1;
+        ++letter;
+    }
+    else if (*letter == '+')
+    {
+        sign = +1;
+        ++letter;
+    }
+
+    while(*letter != 0)
+    {
+        if((*letter >= '0') && (*letter <= '9') &&
+           (INT_MAX - result > 19))
+        {
+            result = result *  10 + (*letter - '0');
+        }
+        else if (*letter == '%')
+        {
+            return result*sign;
+        }
+        else
+        {
+            return 0;
+        }
+        ++letter;
+    }
+    
+    return result*sign;
 }
+
+/**
+ * @brif Convert int to string
+ * @param[in] value value that will be converted to string
+ * @param[in/out] str - buffer where will be stored result
+ * @param[in] max_size - size of buffer, when this value 
+ *                       be reached will be exit from function
+ * @return - len of result string
+ */
+
+int TERM_gpio_itona(const int value, char *str, const int max_size )
+{
+    char *s = str;
+    int len = 0;
+    int absvalue = value;
+    int tmp=value;
+    int res;
+
+    if(value == 0)
+    {
+        *s = '0';
+        return 1;
+    }
+    if(value < 0)
+    {
+        if(max_size > 0)
+        {
+            *s = '-';
+            ++s;
+        }
+        absvalue = -value;
+    }
+
+    while(tmp!=0)
+    {
+        tmp = tmp / 10;
+        if((len + (s-str)) < max_size)
+            len++;
+    }
+    res = &s[len] - str;
+    tmp = absvalue;
+    while(tmp!=0)
+    {
+        if((&s[len-1] - str) < max_size)
+            s[len-1] = '0' + tmp % 10;
+        tmp /= 10;
+        len--;
+    }
+
+    return res;
+}
+
 
 int TERM_gpio_strcmp(const char *str1, const char *str2)
 {
-    return 0;//strcmp(str1, str2);
+    const char *s1 = str1;
+    const char *s2 = str2;
+    while((*s1 == *s2) &&
+          (*s1 != 0) &&
+          (*s2 != 0))
+    {
+        s1++;
+        s2++;
+    }
+    if((*s1 == 0) && (*s2 == 0))
+    {
+        return 0;    
+    }
+    else
+    {
+        return s1 - str1 + 1;
+    }
+
+//return strcmp(str1, str2);
 }
 
 void TERM_gpio_memset(void* data, char val, int len)

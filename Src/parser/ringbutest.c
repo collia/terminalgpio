@@ -5,12 +5,9 @@
 #include <stdbool.h>
 
 #include "../../Inc/ringbuffer.h"
-
+#include "termutest.h"
 
 RING_BUFFER_DECL(test, 10)
-
-
-#define PRINT_RESULT(a) if(a) {printf("%s \t\t PASS\n", __func__);}else{printf("%s \t\t FAIL\n", __func__);}
 
 static bool check_buffer(
         const char* buffer,
@@ -30,48 +27,62 @@ static bool check_buffer(
 
 
 
-static void test_ring_buffer_clear(){
+static bool test_ring_buffer_clear(){
+    bool result = true;
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
 
     PRINT_RESULT(check_buffer(RING_BUFFER(test), "aaaaaaaaaa", 10));
+
+    return result;
 }
 
-static void test_ring_buffer_insert(){
+static bool test_ring_buffer_insert(){
+    bool result = true;
     char buffer[]="hello";
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
     RING_BUFFER_RESET(test);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
     PRINT_RESULT(check_buffer(RING_BUFFER(test), "helloaaaaa", 10));
+
+    return result;
 }
 
-static void test_ring_buffer_insert2(){
+static bool test_ring_buffer_insert2(){
+    bool result = true;
     char buffer[]="hey";
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
     RING_BUFFER_RESET(test);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
     PRINT_RESULT(check_buffer(RING_BUFFER(test), "heyheyaaaa", 10));
+    return result;
 }
 
-static void test_ring_buffer_insert3(){
+static bool test_ring_buffer_insert3(){
+    bool result = true;
     char buffer[]="123456";
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
     RING_BUFFER_RESET(test);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
     PRINT_RESULT(check_buffer(RING_BUFFER(test), "1234561234", 10));
+
+    return result;
 }
 
-static void test_ring_buffer_insert_too_many_1(){
+static bool test_ring_buffer_insert_too_many_1(){
+    bool result = true;
     char buffer[]="123456789abc";
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
     RING_BUFFER_RESET(test);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
     //RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
     PRINT_RESULT(check_buffer(RING_BUFFER(test), "123456789a", 10));
+    return result;
 }
 
-static void test_ring_buffer_insert_too_many_2(){
+static bool test_ring_buffer_insert_too_many_2(){
+    bool result = true;
     char buffer1[]="123456789abc";
     char buffer2[]="ABCD";
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
@@ -79,9 +90,11 @@ static void test_ring_buffer_insert_too_many_2(){
     RING_BUFFER_INSERT(test, buffer1, sizeof(buffer1)-1);
     RING_BUFFER_INSERT(test, buffer2, sizeof(buffer2)-1);
     PRINT_RESULT(check_buffer(RING_BUFFER(test), "123456789a", 10));
+    return result;
 }
 
-static void test_ring_buffer_insert_too_many_3(){
+static bool test_ring_buffer_insert_too_many_3(){
+    bool result = true;
     char buffer1[]="123456";
     char buffer2[]="ABCDEF";
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
@@ -89,100 +102,112 @@ static void test_ring_buffer_insert_too_many_3(){
     RING_BUFFER_INSERT(test, buffer1, sizeof(buffer1)-1);
     RING_BUFFER_INSERT(test, buffer2, sizeof(buffer2)-1);
     PRINT_RESULT(check_buffer(RING_BUFFER(test), "123456ABCD", 10));
+    return result;
 }
 
-static void test_ring_buffer_get_1(){
-    char *result;
+static bool test_ring_buffer_get_1(){
+    bool result = true;
+    char *res;
     int len = 0;
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
     RING_BUFFER_RESET(test);
-    RING_BUFFER_GET(test, result, len)
+    RING_BUFFER_GET(test, res, len)
     PRINT_RESULT(len == 0);
+    return result;
 }
 
-static void test_ring_buffer_get_2(){
+static bool test_ring_buffer_get_2(){
+    bool result = true;
     char buffer[]="hey";
-    char *result;
+    char *res;
     int len;
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
     RING_BUFFER_RESET(test);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
-    RING_BUFFER_GET(test, result, len)
+    RING_BUFFER_GET(test, res, len)
 
-    PRINT_RESULT(check_buffer(result, "hey", len));
+    PRINT_RESULT(check_buffer(res, "hey", len));
+    return result;
 }
 
-static void test_ring_buffer_insert_get_1(){
+static bool test_ring_buffer_insert_get_1(){
+    bool result = true;
     char buffer[]="hey";
-    char *result;
+    char *res;
     int len;
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
     RING_BUFFER_RESET(test);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
-    RING_BUFFER_GET(test, result, len)
+    RING_BUFFER_GET(test, res, len)
 
-    PRINT_RESULT(check_buffer(result, "heyhey", len));
+    PRINT_RESULT(check_buffer(res, "heyhey", len));
+    return result;
 }
 
 
-static void test_ring_buffer_insert_get_2(){
+static bool test_ring_buffer_insert_get_2(){
+    bool result = true;
     char buffer[]="123456";
     char buffer2[]="ABCCBA";
-    char *result;
+    char *res;
     int len=20;
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
     RING_BUFFER_RESET(test);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
-    RING_BUFFER_GET(test, result, len);
+    RING_BUFFER_GET(test, res, len);
 
     PRINT_RESULT(len != 0);
-    PRINT_RESULT(check_buffer(result, "1234561234", len));
+    PRINT_RESULT(check_buffer(res, "1234561234", len));
 
     RING_BUFFER_INSERT(test, buffer2, sizeof(buffer2)-1);
-    RING_BUFFER_GET(test, result, len);
+    RING_BUFFER_GET(test, res, len);
     PRINT_RESULT(len != 0);
-    PRINT_RESULT(check_buffer(result, "ABCCBA1234", len));
+    PRINT_RESULT(check_buffer(res, "ABCCBA1234", len));
     RING_BUFFER_INSERT(test, buffer2, sizeof(buffer2)-1);
 
     PRINT_RESULT(check_buffer(RING_BUFFER(test), "ABCCBACCBA", 10));
+    return result;
 }
 
-static void test_ring_buffer_insert_get_max_len_1(){
+static bool test_ring_buffer_insert_get_max_len_1(){
+    bool result = true;
     char buffer[]="1234";
-;
-    char *result;
+    char *res;
     int len=2;
     memset(RING_BUFFER(test), 'a', sizeof(RING_BUFFER(test)));
     RING_BUFFER_RESET(test);
     RING_BUFFER_INSERT(test, buffer, sizeof(buffer)-1);
 
-    RING_BUFFER_GET(test, result, len);
+    RING_BUFFER_GET(test, res, len);
 
     PRINT_RESULT(len ==2 );
-    PRINT_RESULT(check_buffer(result, "12", len));
+    PRINT_RESULT(check_buffer(res, "12", len));
 
-    RING_BUFFER_GET(test, result, len);
+    RING_BUFFER_GET(test, res, len);
     PRINT_RESULT(len == 2);
-    PRINT_RESULT(check_buffer(result, "34", len));
+    PRINT_RESULT(check_buffer(res, "34", len));
 
-    RING_BUFFER_GET(test, result, len);
+    RING_BUFFER_GET(test, res, len);
     PRINT_RESULT(len == 0);
+    return result;
 }
 
-void test_ring_buffer() {
-    test_ring_buffer_clear();
-    test_ring_buffer_insert();
-    test_ring_buffer_insert2();
-    test_ring_buffer_insert3();
-    test_ring_buffer_insert_too_many_1();
-    test_ring_buffer_insert_too_many_2();
-    test_ring_buffer_insert_too_many_3();
-    test_ring_buffer_get_1();
-    test_ring_buffer_get_2();
-    test_ring_buffer_insert_get_1();
-    test_ring_buffer_insert_get_2();
-    test_ring_buffer_insert_get_max_len_1();
+bool test_ring_buffer() {
+    bool rc = true;
+    rc &= test_ring_buffer_clear();
+    rc &= test_ring_buffer_insert();
+    rc &= test_ring_buffer_insert2();
+    rc &= test_ring_buffer_insert3();
+    rc &= test_ring_buffer_insert_too_many_1();
+    rc &= test_ring_buffer_insert_too_many_2();
+    rc &= test_ring_buffer_insert_too_many_3();
+    rc &= test_ring_buffer_get_1();
+    rc &= test_ring_buffer_get_2();
+    rc &= test_ring_buffer_insert_get_1();
+    rc &= test_ring_buffer_insert_get_2();
+    rc &= test_ring_buffer_insert_get_max_len_1();
+    return rc;
 }
 

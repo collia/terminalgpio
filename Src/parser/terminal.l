@@ -16,7 +16,7 @@ char TERM_get_input_buf(char* buf, int max_size);
 void Error_Handler(void);
 
 #define YY_INPUT(buf,result,max_size) result = TERM_get_input_buf(buf, max_size);
-#define YY_FATAL_ERROR(msg) {TERM_debug_print("%s\n", msg);Error_Handler();}
+#define YY_FATAL_ERROR(msg) {TERM_debug_print("%s\r\n", msg);Error_Handler();}
 
 void* yyalloc(size_t size) { return TERM_gpio_malloc(size);}
 void* yyrealloc(void* ptr, size_t size) { return TERM_gpio_realloc(ptr, size);}

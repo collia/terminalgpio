@@ -16,6 +16,7 @@ void yyerror(const char *str)
        //fprintf(stderr,"error: %s\n",str);
        TERM_debug_print("Error: ");
        TERM_debug_print(str);
+       TERM_debug_print("\r");
        TERM_debug_print("\n");
 }
 
@@ -110,9 +111,9 @@ gpio_pwm:
 help:
     TOKHELP
     {
-            TERM_debug_print("Help:\n"
-                             "\tgpio info\n"
-                             "\tgpio A|B|C|D port [1-16] mode on|off\n"
-                             "\tgpio A|B|C|D port [1-16] mode pwm freq <Int> [0-100]%\n");
+            TERM_debug_print("Help:\r\n"
+                             "\tgpio info\r\n"
+                             "\tgpio A|B|C|D port [1-16] mode on|off\r\n"
+                             "\tgpio A|B|C|D port [1-16] mode pwm freq <Int> [0-100]%\r\n");
 
     }   
