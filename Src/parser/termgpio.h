@@ -35,7 +35,7 @@ void TERM_gpio_memset(void* data, char val, int len);
 
 void* TERM_gpio_malloc(size_t size);
 void* TERM_gpio_realloc(void *ptr, size_t size);
-void* TERM_gpio_free(void *ptr);
+void TERM_gpio_free(void *ptr);
 
 
 #endif //_TERMGPIO_H_

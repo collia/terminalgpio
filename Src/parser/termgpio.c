@@ -73,12 +73,25 @@ int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
     char buffer[TERM_PRINT_BUFFER_LENGTH];
     if(data->is_PWM)
     {
-        snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%d Hz %d%%\n", data->port, data->line, data->freq, data->duty);
+        //snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%d Hz %d%%\n", data->port, data->line, data->freq, data->duty);
+        buffer[0] = 'A';
+        buffer[1] = 'T';
+        buffer[2] = ' ';
+        buffer[3] = 'P';
+        buffer[4] = 'W';
+        buffer[5] = 'M';
+        buffer[6] = 0;
         TERM_debug_print(buffer);
     }
     else
     {
-        snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%s\n", data->port, data->line, data->level?"on":"off");
+        //snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%s\n", data->port, data->line, data->level?"on":"off");
+        buffer[0] = 'A';
+        buffer[1] = 'T';
+        buffer[2] = ' ';
+        buffer[3] = 'O';
+        buffer[4] = 'K';
+        buffer[5] = 0;
         TERM_debug_print(buffer);
     }
     return 0;
@@ -87,12 +100,12 @@ int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
 
 int TERM_gpio_atoi(const char *str)
 {
-    return atoi(str);
+    return 0;
 }
 
 int TERM_gpio_strcmp(const char *str1, const char *str2)
 {
-    return strcmp(str1, str2);
+    return 0;//strcmp(str1, str2);
 }
 
 void TERM_gpio_memset(void* data, char val, int len)
@@ -109,7 +122,7 @@ static bool memory_pool_1028_used = false;
 
 void* TERM_gpio_malloc(size_t size)
 {
-    printf("size = %zu\n", size);
+    //printf("size = %zu\n", size);
     if (size <= 8)
     {
         if (memory_pool_8_used)
@@ -151,11 +164,23 @@ void* TERM_gpio_malloc(size_t size)
 
 void* TERM_gpio_realloc(void *ptr, size_t size)
 {
-    return 0;
+    TERM_gpio_free(ptr);
+    return TERM_gpio_malloc(size);
 }
-void* TERM_gpio_free(void *ptr)
+void TERM_gpio_free(void *ptr)
 {
-    return 0;
+     if (ptr == memory_pool_8)
+     {
+         memory_pool_8_used = false;
+     }
+     if (ptr == memory_pool_64)
+     {
+         memory_pool_64_used = false;
+      }
+     if (ptr == memory_pool_1028)
+     {
+         memory_pool_1028_used = false;
+      }
 }
 
 

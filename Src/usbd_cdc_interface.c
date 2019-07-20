@@ -333,7 +333,9 @@ static void CDC_tx(const uint8_t* buff, uint32_t len)
 static int CDC_rx(const uint8_t* buff, uint32_t max_len)
 {
     uint32_t len = max_len;
-    RING_BUFFER_GET(UserRx, buff, len);
+    char *result;
+    RING_BUFFER_GET(UserRx, result, len);
+    memcpy(buff, result, len);
     return len;
 }
 

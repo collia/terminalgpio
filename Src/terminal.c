@@ -13,12 +13,14 @@ USBD_CDC_LineCodingTypeDef LineCoding = {
 };
 
 static TERM_tx_handler low_tx_handler;
+static TERM_rx_handler low_rx_handler;
 
-static bool TERM_inited = false;
+static volatile bool TERM_inited = false;
 
-void TERM_init(TERM_tx_handler handler)
+void TERM_init(TERM_tx_handler tx_handler, TERM_rx_handler rx_handler)
 {
-    low_tx_handler = handler;
+    low_tx_handler = tx_handler;
+    low_rx_handler = rx_handler;
     TERM_inited = true;
 }
 
@@ -55,7 +57,15 @@ void TERM_debug_print(const char *line)
     low_tx_handler((uint8_t*)line, strlen(line));
 }
 
-char TERM_get_input_buf(char* buf, int max_size)
+int TERM_get_input_buf(unsigned char* buf, int max_size)
 {
-    return 'A';
+    while(!TERM_inited);
+
+    int rc;
+    do
+    {
+        rc = low_rx_handler(buf, max_size);
+    }
+    while(rc == 0);
+    return rc;
 }
