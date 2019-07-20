@@ -3,7 +3,7 @@
 #include <string.h>
 #include "termgpio.h"
 
-#include "termutest.h"
+#include "utest.h"
 
 int TERM_parser();
 void TERM_MOCK_init_input_buffer(const char* lines);
@@ -33,9 +33,7 @@ static bool test_positive_term(
         return false;       
     }
     return true;
-
 }
-
 
 static bool test_negative_term(
         TERM_gpio_port_info_TYP *gpio_test_config,
@@ -287,7 +285,7 @@ static bool test_error_incorrect_gpio()
 }
 
 
-bool parser_tests()
+bool parser_utests()
 {
     bool rc = true;
     rc &= test_help();
@@ -302,23 +300,3 @@ bool parser_tests()
     return rc;
 }
 
-extern bool test_ring_buffer();
-extern bool myposix_utests();
-
-int main()
-{
-    bool rc = true;
-    rc &= parser_tests();
-    rc &= test_ring_buffer();
-    rc &= myposix_utests();
-    if(rc)
-    {
-        printf("OK\n");
-        return 0;
-    }
-    else
-    {
-        printf("FAIL\n");
-        return 1;
-    }
-}

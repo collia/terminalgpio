@@ -5,7 +5,7 @@
 //#include <stdbool.h>
 
 #include "termgpio.h"
-#include "termutest.h"
+#include "utest.h"
 
 
 static bool myposix_test_atoi()
