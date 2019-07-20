@@ -56,6 +56,7 @@
 #include "termgpio.h"
 #include "blue_pill.h"
 #include "terminal.h"
+#include "gpio.h"
 #include "main.h"
 
 /** @addtogroup STM32F1xx_HAL_Validation
@@ -108,6 +109,7 @@ int main(void)
   USBD_Start(&USBD_Device);
 
   TERM_gpio_set_info(BRD_gpio_def_config);
+  GPIO_init(BRD_gpio_def_config);
   /* Infinite loop */
   while (1)
   {

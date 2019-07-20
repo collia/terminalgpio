@@ -115,7 +115,7 @@ help:
             TERM_debug_print("\r\nHelp:\r\n"
                              "\thelp|?\r\n"
                              "\tgpio info\r\n"
-                             "\tgpio A|B|C|D port [1-16] mode on|off\r\n"
-                             "\tgpio A|B|C|D port [1-16] mode pwm freq <Int> [0-100]%\r\n");
+                             "\tgpio A|B|C|D port [0-15] mode on|off\r\n"
+                             "\tgpio A|B|C|D port [0-15] mode pwm freq <Int> [0-100]%\r\n");
 
     }   

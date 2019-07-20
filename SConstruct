@@ -111,6 +111,7 @@ prg = env.Program(
     LIBS=['libstm32', 'libterminal'],
     source = [
         'build/src/main.c',
+        'build/src/gpio.c',
         'build/src/blue_pill.c',
 #        'build/src/stm32f1xx_hal_msp.c',
         'build/src/terminal.c',

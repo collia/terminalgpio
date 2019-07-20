@@ -8,9 +8,9 @@ File contains controls for evaluation board http://wiki.stm32duino.com/index.php
 
 TERM_gpio_port_info_TYP BRD_gpio_def_config[] =
 {
-    {'A', 1, false, false, 0, 0},
-    {'B', 2, false, false, 0, 0},
-    {'B', 3, false, false, 0, 0},
+    {'A', 1,   false, false, 0, 0},
+    {'B', 2,   false, false, 0, 0},
+    {'C', 13,  false, false, 0, 0},
     {0, 0, false, false, 0, 0},
 
 };
@@ -39,10 +39,10 @@ void BRD_led_toggle()
 
 void BRD_led_on()
 {
-    HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET);
 }
 
 void BRD_led_off()
 {
-    HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET);
 }

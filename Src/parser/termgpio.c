@@ -12,6 +12,7 @@ static TERM_gpio_port_info_TYP *TERM_gpio_info_table = 0;
 
 void yyerror(const char *str);
 void TERM_debug_print(const char *line);
+extern int GPIO_set_mode(TERM_gpio_port_info_TYP* gpio_line);
 
 
 TERM_gpio_port_info_TYP*  TERM_gpio_get_info()
@@ -47,7 +48,7 @@ TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool
         yyerror("incorrect port");
         return NULL;
     }
-    if(line < 0 || line > TERM_GPIO_MAX_LINES_NUMBER)
+    if(line < 0 || line >= TERM_GPIO_MAX_LINES_NUMBER)
     {
         yyerror("incorrect line");
         return NULL;
@@ -63,6 +64,12 @@ TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool
             gpio_info->level = mode;
             gpio_info->freq = freq;
             gpio_info->duty = duty;
+
+            if(GPIO_set_mode(gpio_info) < 0)
+            {
+                yyerror("Low level error");
+                return NULL;
+            }
             return gpio_info;
         }
     gpio_info++;

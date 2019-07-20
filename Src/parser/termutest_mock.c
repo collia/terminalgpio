@@ -55,3 +55,8 @@ void Error_Handler(void)
     printf("ERROR!\n");
     exit(1);
 }
+
+int GPIO_set_mode(TERM_gpio_port_info_TYP* gpio_line)
+{
+    return 0;
+}
