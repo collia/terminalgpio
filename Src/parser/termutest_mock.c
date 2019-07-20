@@ -2,6 +2,7 @@
 #include <string.h>
 //#include "terminal.h"
 #include <stdlib.h>
+#include "termgpio.h"
 
 #define TERM_MOCK_INPUT_BUFFER_SIZE 1024
 #define TERM_MOCK_OUTPUT_BUFFER_SIZE 1024

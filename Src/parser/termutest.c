@@ -270,7 +270,7 @@ static bool test_error_incorrect_port()
             {0, 0, false, false, 0, 0},
         };
     char input[] = "gpio info\n"
-        "gpio a port 16 mode on\n"
+        "gpio a port 10 mode on\n"
         "gpio info\n";
     char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
