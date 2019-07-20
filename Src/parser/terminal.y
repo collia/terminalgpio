@@ -14,10 +14,9 @@ void TERM_debug_print(const char *line);
 void yyerror(const char *str)
 {
        //fprintf(stderr,"error: %s\n",str);
-       TERM_debug_print("Error: ");
+       TERM_debug_print("\r\nError: ");
        TERM_debug_print(str);
-       TERM_debug_print("\r");
-       TERM_debug_print("\n");
+       TERM_debug_print("\r\n");
 }
 
 int yywrap()
@@ -68,12 +67,12 @@ gpio_info:
     TOKGPIO TOKINFO
     {
             TERM_gpio_port_info_TYP * data;
-    
             data = TERM_gpio_get_info();
             if(data == 0)
             {
                 return -1;
             }
+            TERM_debug_print("\r\n");
             while(data->port != 0 && data->line != 0)
             {
                 if (TERM_gpio_print_port_info(data) < 0)
@@ -93,6 +92,7 @@ gpio_mode:
         if(port <= 0) {
             return -1;
         }
+        TERM_debug_print("\r\n");
         TERM_gpio_print_port_info(port);
     }
     ;
@@ -105,13 +105,15 @@ gpio_pwm:
         if(port <= 0) {
             return -1;
         }
+        TERM_debug_print("\r\n");
         TERM_gpio_print_port_info(port);
     }
     ;
 help:
     TOKHELP
     {
-            TERM_debug_print("Help:\r\n"
+            TERM_debug_print("\r\nHelp:\r\n"
+                             "\thelp|?\r\n"
                              "\tgpio info\r\n"
                              "\tgpio A|B|C|D port [1-16] mode on|off\r\n"
                              "\tgpio A|B|C|D port [1-16] mode pwm freq <Int> [0-100]%\r\n");

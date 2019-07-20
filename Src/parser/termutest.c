@@ -74,11 +74,37 @@ static bool test_help()
             {'B', 4, true,  false, 50, 50},
             {0, 0, false, false, 0, 0},
         };
-    char input[] ="help\n";
-    char output[] = "Help:\r\n"
-    "\tgpio info\r\n"
-    "\tgpio A|B|C|D port [1-16] mode on|off\r\n"
-    "\tgpio A|B|C|D port [1-16] mode pwm freq <Int> [0-100]%\r\n";
+    char input[] ="help";
+    char output[] = "\r\nHelp:\r\n"
+        "\thelp|?\r\n"
+        "\tgpio info\r\n"
+        "\tgpio A|B|C|D port [1-16] mode on|off\r\n"
+        "\tgpio A|B|C|D port [1-16] mode pwm freq <Int> [0-100]%\r\n";
+
+    PRINT_RESULT(test_positive_term(
+        gpio_info,
+        input,
+        output));
+    return result;
+}
+
+static bool test_help_2()
+{
+    bool result = true;
+    TERM_gpio_port_info_TYP gpio_info[10] =
+        {
+            {'A', 1, false, false, 0, 0},
+            {'B', 2, false, false, 0, 0},
+            {'B', 3, false, true, 0, 0},
+            {'B', 4, true,  false, 50, 50},
+            {0, 0, false, false, 0, 0},
+        };
+    char input[] ="?";
+    char output[] = "\r\nHelp:\r\n"
+        "\thelp|?\r\n"
+        "\tgpio info\r\n"
+        "\tgpio A|B|C|D port [1-16] mode on|off\r\n"
+        "\tgpio A|B|C|D port [1-16] mode pwm freq <Int> [0-100]%\r\n";
 
     PRINT_RESULT(test_positive_term(
         gpio_info,
@@ -100,7 +126,7 @@ static bool test_info()
             {0, 0, false, false, 0, 0},
         };
     char input[] ="gpio info\n";
-    char output[] = "A.1\toff\r\n"
+    char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\t50 Hz 50%\r\n"; 
@@ -125,12 +151,12 @@ static bool test_set_on()
     char input[] = "gpio info\n"
         "gpio a port 1 mode on\n"
         "gpio info\n";
-    char output[] = "A.1\toff\r\n"
+    char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\t50 Hz 50%\r\n"
-        "A.1\ton\r\n"
-        "A.1\ton\r\n"
+        "\r\nA.1\ton\r\n"
+        "\r\nA.1\ton\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\t50 Hz 50%\r\n";
@@ -155,12 +181,12 @@ static bool test_set_off()
     char input[] ="gpio info\n"
         "gpio B port 3 mode off\n"
         "gpio info\n";
-    char output[] = "A.1\toff\r\n"
+    char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\t50 Hz 50%\r\n"
-        "B.3\toff\r\n"
-        "A.1\toff\r\n"
+        "\r\nB.3\toff\r\n"
+        "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\toff\r\n"
         "B.4\t50 Hz 50%\r\n";
@@ -185,12 +211,12 @@ static bool test_set_pwm_on()
     char input[] ="gpio info\n"
         "gpio A port 1 mode pwm freq 20 10%\n"
         "gpio info\n";
-    char output[] = "A.1\toff\r\n"
+    char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\t50 Hz 50%\r\n"
-        "A.1\t20 Hz 10%\r\n"
-        "A.1\t20 Hz 10%\r\n"
+        "\r\nA.1\t20 Hz 10%\r\n"
+        "\r\nA.1\t20 Hz 10%\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\t50 Hz 50%\r\n";
@@ -216,12 +242,12 @@ static bool test_set_pwm_off()
     char input[] ="gpio info\n"
         "gpio B port 4 mode on\n"
         "gpio info\n";
-    char output[] = "A.1\toff\r\n"
+    char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\t50 Hz 50%\r\n"
-        "B.4\ton\r\n"
-        "A.1\toff\r\n"
+        "\r\nB.4\ton\r\n"
+        "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\ton\r\n";
@@ -246,11 +272,11 @@ static bool test_error_incorrect_port()
     char input[] = "gpio info\n"
         "gpio a port 16 mode on\n"
         "gpio info\n";
-    char output[] = "A.1\toff\r\n"
+    char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\t50 Hz 50%\r\n"
-        "Error: Port is not allowed\r\n";
+        "\r\nError: Port is not allowed\r\n";
     PRINT_RESULT(test_negative_term(
                 gpio_info,
                 input,
@@ -272,11 +298,11 @@ static bool test_error_incorrect_gpio()
     char input[] = "gpio info\n"
         "gpio F port 16 mode on\n"
         "gpio info\n";
-    char output[] = "A.1\toff\r\n"
+    char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "B.4\t50 Hz 50%\r\n"
-        "Error: syntax error\r\n";
+        "\r\nError: syntax error\r\n";
     PRINT_RESULT(test_negative_term(
                 gpio_info,
                 input,
@@ -289,6 +315,7 @@ bool parser_utests()
 {
     bool rc = true;
     rc &= test_help();
+    rc &= test_help_2();
     rc &= test_info();
     rc &= test_set_on();
     rc &= test_set_off();

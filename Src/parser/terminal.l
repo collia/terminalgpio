@@ -29,6 +29,7 @@ void yyfree(void* ptr) {TERM_gpio_free(ptr);}
 %%
 [0-9]+                  yylval.number=TERM_gpio_atoi(yytext); return NUMBER;
 help                    return TOKHELP;
+\?                       return TOKHELP;
 gpio                    return TOKGPIO;
 info                    return TOKINFO;
 port                    return TOKPORT;
