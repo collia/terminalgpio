@@ -8,11 +8,17 @@ File contains controls for evaluation board http://wiki.stm32duino.com/index.php
 
 TERM_gpio_port_info_TYP BRD_gpio_def_config[] =
 {
-    {'A', 1,   false, false, 0, 0},
-    {'B', 2,   false, false, 0, 0},
-    {'C', 13,  false, false, 0, 0},
-    {0, 0, false, false, 0, 0},
+    {{'A', 1},   false, false, 0},
+    {{'A', 2},   false, false, 0},
+    {{'C', 13},  false, false, 0},
+    {{0, 0}, false, false, 0},
 
+};
+
+TERM_gpio_tim_pwm_info_TYP BRD_gpio_pwm_def_config[] =
+{
+    {2, 50, {{'A', 0}, {'A', 1},{'A', 2},{'A', 3}}},    
+    {0, 0,  {{0, 0}, {0, 0},{0, 0},{0, 0}}} 
 };
 
 void BRD_led_init()

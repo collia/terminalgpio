@@ -108,8 +108,8 @@ int main(void)
   /* Start Device Process */
   USBD_Start(&USBD_Device);
 
-  TERM_gpio_set_info(BRD_gpio_def_config);
-  GPIO_init(BRD_gpio_def_config);
+  TERM_gpio_set_info(BRD_gpio_def_config, BRD_gpio_pwm_def_config);
+  GPIO_init(BRD_gpio_def_config, BRD_gpio_pwm_def_config);
   /* Infinite loop */
   while (1)
   {

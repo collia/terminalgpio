@@ -20,3 +20,4 @@ void BRD_led_off(void);
 
 
 extern TERM_gpio_port_info_TYP BRD_gpio_def_config[];
+extern TERM_gpio_tim_pwm_info_TYP BRD_gpio_pwm_def_config[];

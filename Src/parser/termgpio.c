@@ -6,34 +6,78 @@
 #include "termgpio.h"
 
 
-#define TERM_PRINT_BUFFER_LENGTH 100
+#define TERM_PRINT_BUFFER_LENGTH 200
 
 static TERM_gpio_port_info_TYP *TERM_gpio_info_table = 0;
+static TERM_gpio_tim_pwm_info_TYP *TERM_gpio_pwm_table = 0;
 
 void yyerror(const char *str);
 void TERM_debug_print(const char *line);
+
 extern int GPIO_set_mode(TERM_gpio_port_info_TYP* gpio_line);
+extern int GPIO_pwm_cfg(TERM_gpio_tim_pwm_info_TYP* pwm_line);
 
+static TERM_gpio_tim_pwm_info_TYP* TERM_gpio_find_tim_for_port(
+    const TERM_gpio_port_TYP* idx)
+{
+    TERM_gpio_tim_pwm_info_TYP * tim = TERM_gpio_pwm_table;
+    while(tim->tim != 0)
+    {
+        for(int i = 0; i < TERM_GPIO_MAX_PWM_CH_NUMBER; i++)
+        {
+            if((tim->channels[i].port == idx->port) &&
+               (tim->channels[i].line == idx->line))
+            {
+                return tim;
+            }
+        }
+        tim++;
+    }
+    return NULL;
+}
 
-TERM_gpio_port_info_TYP*  TERM_gpio_get_info()
+static TERM_gpio_port_info_TYP* TERM_gpio_find_gpio_for_port(
+    const TERM_gpio_port_TYP* idx)
+{
+    TERM_gpio_port_info_TYP* gpio_info = TERM_gpio_info_table;
+    while((gpio_info->idx.port != 0) &&
+          (gpio_info->idx.line != 0))
+    {
+        if((gpio_info->idx.port == idx->port) &&
+           (gpio_info->idx.line == idx->line))
+        {
+            return gpio_info;
+        }
+        gpio_info++;
+    }
+    return NULL;
+}
+
+TERM_gpio_port_info_TYP*  TERM_gpio_get_gpio_info()
 {
     return TERM_gpio_info_table;
 }
+TERM_gpio_tim_pwm_info_TYP*  TERM_gpio_get_pwm_info()
+{
+    return TERM_gpio_pwm_table;
+}
 
-void TERM_gpio_set_info(TERM_gpio_port_info_TYP* gpio_table)
+void TERM_gpio_set_info(TERM_gpio_port_info_TYP* gpio_table,
+    TERM_gpio_tim_pwm_info_TYP *pwm_table)
 {
     TERM_gpio_info_table = gpio_table;
+    TERM_gpio_pwm_table = pwm_table;
 }
 
 
 
-TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int freq, int duty)
+TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int duty)
 {
     char cport;
 
     TERM_gpio_port_info_TYP *gpio_info = TERM_gpio_info_table;
-
-    if(TERM_gpio_info_table == 0)
+    TERM_gpio_tim_pwm_info_TYP *tim_info = NULL;
+    if((TERM_gpio_info_table == 0) || (TERM_gpio_pwm_table == 0))
     {
         yyerror("not initialized");
         return NULL;
@@ -54,17 +98,38 @@ TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool
         return NULL;
     }
 
-    while((gpio_info->port != 0) &&
-      (gpio_info->line != 0))
+    if(duty < 0 || duty > 100)
     {
-        if((gpio_info->port == cport) &&
-           (gpio_info->line == line))
-        {
-            gpio_info->is_PWM = is_PWM;
-            gpio_info->level = mode;
-            gpio_info->freq = freq;
-            gpio_info->duty = duty;
+        yyerror("incorrect persent");
+        return NULL;
+    }
 
+    while((gpio_info->idx.port != 0) &&
+      (gpio_info->idx.line != 0))
+    {
+        if((gpio_info->idx.port == cport) &&
+           (gpio_info->idx.line == line))
+        {
+            if(!is_PWM)
+            {
+                gpio_info->level = mode;
+                gpio_info->is_PWM = false;
+            }
+            else
+            {
+                tim_info = TERM_gpio_find_tim_for_port(&gpio_info->idx);
+                if(tim_info != 0)
+                {
+                    gpio_info->is_PWM = is_PWM;
+                    gpio_info->duty = duty;
+                    gpio_info->pwm_info = tim_info;
+                }
+                else
+                {
+                    yyerror("PWM is not allowed on this port");
+                    return NULL;
+                }
+            }
             if(GPIO_set_mode(gpio_info) < 0)
             {
                 yyerror("Low level error");
@@ -78,6 +143,42 @@ TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool
     return NULL;
 }
 
+TERM_gpio_tim_pwm_info_TYP * TERM_gpio_set_pwm_freq(int tim_num, int freq)
+{
+    TERM_gpio_tim_pwm_info_TYP * tim = TERM_gpio_pwm_table;
+    if(freq < 0)
+    {
+        yyerror("incorrect freq");
+        return NULL;
+    }
+    if(tim_num < 0 || tim_num > 4)
+    {
+        yyerror("incorrect tim");
+        return NULL;
+    }
+    while(tim->tim != 0)
+    {
+        for(int i = 0; i < TERM_GPIO_MAX_PWM_CH_NUMBER; i++)
+        {
+            if((tim->tim == tim_num))
+            {
+                tim->freq = freq;
+
+                if(GPIO_pwm_cfg(tim) <0)
+                {
+                    yyerror("Low level error");
+                    return NULL;
+                }
+                return tim;
+            }
+        }
+        tim++;
+    }
+    yyerror("tim is not allowed");
+        
+    return NULL;
+}
+
 
 int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
 {
@@ -86,17 +187,25 @@ int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
     if(data->is_PWM)
     {
         //snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%d Hz %d%%\n", data->port, data->line, data->freq, data->duty);
-        *bp++=data->port;
+        *bp++=data->idx.port;
         *bp++='.';
-        bp += TERM_gpio_itona(data->line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
+        bp += TERM_gpio_itona(data->idx.line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
         *bp++='\t';
-        bp += TERM_gpio_itona(data->freq, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
-        *bp++=' ';
-        *bp++='H';
-        *bp++='z';
+        *bp++='p';
+        *bp++='w';
+        *bp++='m';
         *bp++=' ';
         bp += TERM_gpio_itona(data->duty, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
         *bp++='%';
+        *bp++=' ';
+        *bp++='t';
+        *bp++='i';
+        *bp++='m';
+        bp += TERM_gpio_itona(data->pwm_info->tim, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+        *bp++=' ';
+        bp += TERM_gpio_itona(data->pwm_info->freq, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+        *bp++='H';
+        *bp++='z';
         *bp++='\r';
         *bp++='\n';
         *bp++=0;
@@ -105,9 +214,9 @@ int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
     else
     {
         //snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%s\n", data->port, data->line, data->level?"on":"off");
-        *bp++=data->port;
+        *bp++=data->idx.port;
         *bp++='.';
-        bp += TERM_gpio_itona(data->line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
+        bp += TERM_gpio_itona(data->idx.line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
         *bp++='\t';
         if(data->level)
         {
@@ -127,6 +236,63 @@ int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
     }
     return 0;
 }
+
+int TERM_gpio_print_tim_info(TERM_gpio_tim_pwm_info_TYP * data)
+{
+    TERM_gpio_port_info_TYP *gpio_info;
+    char buffer[TERM_PRINT_BUFFER_LENGTH];
+    char *bp = buffer;
+    *bp++='T';
+    *bp++='I';
+    *bp++='M';
+    bp += TERM_gpio_itona(data->tim, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+    *bp++=' ';
+    *bp++='F';
+    *bp++='r';
+    *bp++='e';
+    *bp++='q';
+    *bp++=' ';
+    bp += TERM_gpio_itona(data->freq, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+    *bp++='H';
+    *bp++='z';
+    *bp++=':';
+    *bp++='\r';
+    *bp++='\n';
+    for(int i = 0; i < TERM_GPIO_MAX_PWM_CH_NUMBER; i++)
+    {
+        gpio_info = TERM_gpio_find_gpio_for_port(&data->channels[i]);
+        if(gpio_info)
+        {
+            *bp++='\t';
+            *bp++=gpio_info->idx.port;
+            *bp++='.';
+            bp += TERM_gpio_itona(gpio_info->idx.line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
+            *bp++='\t';
+            *bp++='p';
+            *bp++='w';
+            *bp++='m';
+            *bp++=' ';
+            if(gpio_info->is_PWM)
+            {
+                bp += TERM_gpio_itona(gpio_info->duty, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+                *bp++='%';
+            }
+            else
+            {
+                *bp++='o';
+                *bp++='f';
+                *bp++='f';
+            }
+            *bp++='\r';
+            *bp++='\n';
+
+        }
+    }
+    *bp++=0;
+    TERM_debug_print(buffer);
+    return 0;
+}
+
 
 // Allowed only simple dec format. returns 0 in error case
 int TERM_gpio_atoi(const char *str)

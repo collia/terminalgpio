@@ -57,7 +57,11 @@ void Error_Handler(void)
     exit(1);
 }
 
-int GPIO_set_mode(TERM_gpio_port_info_TYP* gpio_line)
+int GPIO_set_gpio_mode(TERM_gpio_port_info_TYP* gpio_line)
+{
+    return 0;
+}
+int GPIO_set_pwm_cfg(TERM_gpio_tim_pwm_info_TYP* pwm_line)
 {
     return 0;
 }
