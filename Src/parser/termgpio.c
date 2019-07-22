@@ -146,6 +146,7 @@ TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool
 TERM_gpio_tim_pwm_info_TYP * TERM_gpio_set_pwm_freq(int tim_num, int freq)
 {
     TERM_gpio_tim_pwm_info_TYP * tim = TERM_gpio_pwm_table;
+    TERM_gpio_port_info_TYP *gpio_info = TERM_gpio_info_table;
     if(freq < 0)
     {
         yyerror("incorrect freq");
@@ -166,9 +167,27 @@ TERM_gpio_tim_pwm_info_TYP * TERM_gpio_set_pwm_freq(int tim_num, int freq)
 
                 if(GPIO_pwm_cfg(tim) <0)
                 {
-                    yyerror("Low level error");
+                    yyerror("TIM low level error");
                     return NULL;
                 }
+
+                while((gpio_info->idx.port != 0) &&
+                      (gpio_info->idx.line != 0))
+                {
+                    if((gpio_info->is_PWM) && (gpio_info->pwm_info != NULL))
+                    {
+                        if(gpio_info->pwm_info->tim == tim->tim)
+                        {
+                            if(GPIO_set_mode(gpio_info) < 0)
+                            {
+                                yyerror("GPIO low level error");
+                                return NULL;
+                            }
+                        }
+                    }
+                    gpio_info++;
+                }
+                
                 return tim;
             }
         }
