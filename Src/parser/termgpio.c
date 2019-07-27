@@ -222,7 +222,9 @@ int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
         *bp++='m';
         bp += TERM_gpio_itona(data->pwm_info->tim, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
         *bp++=' ';
-        bp += TERM_gpio_itona(data->pwm_info->freq, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+        bp += TERM_gpio_itona(data->pwm_info->freq/10, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+        *bp++='.';
+        bp += TERM_gpio_itona(data->pwm_info->freq%10, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
         *bp++='H';
         *bp++='z';
         *bp++='\r';
@@ -271,7 +273,9 @@ int TERM_gpio_print_tim_info(TERM_gpio_tim_pwm_info_TYP * data)
     *bp++='e';
     *bp++='q';
     *bp++=' ';
-    bp += TERM_gpio_itona(data->freq, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+    bp += TERM_gpio_itona(data->freq/10, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
+    *bp++='.';
+    bp += TERM_gpio_itona(data->freq%10, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
     *bp++='H';
     *bp++='z';
     *bp++=':';
@@ -340,6 +344,10 @@ int TERM_gpio_atoi(const char *str)
         else if (*letter == '%')
         {
             return result*sign;
+        }
+        else if(*letter == '.')
+        {
+            // Do nothing - this case for fixed point numbers
         }
         else
         {

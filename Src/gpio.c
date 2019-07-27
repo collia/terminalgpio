@@ -5,7 +5,7 @@
 #include "main.h"
 
 
-#define TIM_COUNTER_CLOCK 10000 
+#define TIM_COUNTER_CLOCK 10000
 
 TIM_HandleTypeDef TIM_PWM_handler[4]; // TIM1 TIM2 ....
 
@@ -291,7 +291,7 @@ extern int GPIO_pwm_cfg(TERM_gpio_tim_pwm_info_TYP* pwm_line)
             return rc;
     uhPrescalerValue = (uint32_t)(SystemCoreClock / TIM_COUNTER_CLOCK) - 1;
     
-    period = (TIM_COUNTER_CLOCK/pwm_line->freq)-1;
+    period = (TIM_COUNTER_CLOCK*10/pwm_line->freq)-1;
     
     timHandle->Instance = tim;
     timHandle->Init.Prescaler         = uhPrescalerValue;

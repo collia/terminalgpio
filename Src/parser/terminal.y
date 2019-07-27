@@ -49,6 +49,7 @@ char *heater="default";
 
 %token <number> STATE
 %token <number> NUMBER
+%token <number> FPFLOAT
 %token <number> PERCENT
 %token <number> PORT
 
@@ -133,6 +134,17 @@ pwm_freq:
     TOKPWM TOKTIM NUMBER TOKFREQ NUMBER
     {
         TERM_gpio_tim_pwm_info_TYP * pwm;
+        pwm = TERM_gpio_set_pwm_freq($3, $5*10);
+        if(pwm <= 0) {
+            return -1;
+        }
+        TERM_debug_print("\r\n");
+        TERM_gpio_print_tim_info(pwm);
+    }
+pwm_freq:
+    TOKPWM TOKTIM NUMBER TOKFREQ FPFLOAT
+    {
+        TERM_gpio_tim_pwm_info_TYP * pwm;
         pwm = TERM_gpio_set_pwm_freq($3, $5);
         if(pwm <= 0) {
             return -1;
@@ -140,8 +152,6 @@ pwm_freq:
         TERM_debug_print("\r\n");
         TERM_gpio_print_tim_info(pwm);
     }
-
-
 help:
     TOKHELP
     {
