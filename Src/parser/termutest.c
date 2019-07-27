@@ -14,9 +14,11 @@ const char * TERM_MOCK_get_output_buffer();
             {'B', 2, false, false, 0, 0},             \
             {'B', 3, true, false,  0, 0},               \
             {'A', 3, false, false, 0, 0},               \
+            {'C', 0, false, false, 0, 0},               \
             {0, 0, false, false, 0, 0},
 #define TERM_UTEST_DEFAULT_TIM_CONFIG                           \
     {2, 50, {{'A', 0}, {'A', 1},{'A', 2},{'A', 3}}},            \
+    {3, 20, {{'C', 0}, {'C', 1},{'C', 2},{'C', 3}}},            \
             {0, 0,  {{0, 0}, {0, 0},{0, 0},{0, 0}}}           
 
 
@@ -40,8 +42,8 @@ static bool test_positive_term(
     }
     if(rc = strcmp(output, waited_output))
     {
-        printf("Test failed. char = %d\n%s\n!=\n%s\n", rc, output, waited_output);
-        for(int i = 0; i < 100; i++)
+        printf("Test failed. char = %d\nResult:\n%s\n!=\nWaited:\n%s\n", rc, output, waited_output);
+        for(int i = 0; i < 10; i++)
         {
             printf("%03d: 0x%02hhx != 0x%02hhx %s\n", i, output[i], waited_output[i], ((output[i] != waited_output[i])?"!!!":" "));
         }
@@ -151,7 +153,8 @@ static bool test_info()
     char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
-        "A.3\toff\r\n";
+        "A.3\toff\r\n"
+        "C.0\toff\r\n";
     PRINT_RESULT(test_positive_term(
         gpio_info,
         pwm_info,
@@ -175,7 +178,8 @@ static bool test_info_2()
     char output[] = "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
-        "A.3\tpwm 34% tim2 50Hz\r\n";
+        "A.3\tpwm 34% tim2 50Hz\r\n"
+        "C.0\toff\r\n";
 
     gpio_info[3].is_PWM = true;
     gpio_info[3].pwm_info = &pwm_info[0];
@@ -203,7 +207,9 @@ static bool test_pwm_info()
     char input[] ="pwm info\n";
     char output[] = "\r\nTIM2 Freq 50Hz:\r\n"
         "\tA.1\tpwm off\r\n"
-        "\tA.3\tpwm 34%\r\n";
+        "\tA.3\tpwm 34%\r\n"
+        "TIM3 Freq 20Hz:\r\n"
+        "\tC.0\tpwm off\r\n";
 
     gpio_info[3].is_PWM = true;
     gpio_info[3].pwm_info = &pwm_info[0];
@@ -236,7 +242,36 @@ static bool test_set_on()
         "\r\nA.1\ton\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
-        "A.3\toff\r\n";
+        "A.3\toff\r\n"
+        "C.0\toff\r\n";
+    PRINT_RESULT(test_positive_term(
+                gpio_info,
+                pwm_info,
+                input,
+                output));
+    return result;
+}
+
+static bool test_set_on_2()
+{
+    bool result = true;
+    TERM_gpio_port_info_TYP gpio_info[10] =
+        {
+            TERM_UTEST_DEFAULT_GPIO_CONFIG
+        };
+    TERM_gpio_tim_pwm_info_TYP pwm_info[10] =
+        {
+            TERM_UTEST_DEFAULT_TIM_CONFIG
+        };
+    char input[] =  "gpio c port 0 mode on\n"
+        "gpio info\n";
+    char output[] = 
+        "\r\nC.0\ton\r\n"
+        "\r\nA.1\toff\r\n"
+        "B.2\toff\r\n"
+        "B.3\ton\r\n"
+        "A.3\toff\r\n"
+        "C.0\ton\r\n";
     PRINT_RESULT(test_positive_term(
                 gpio_info,
                 pwm_info,
@@ -262,7 +297,8 @@ static bool test_set_off()
         "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\toff\r\n"
-        "A.3\toff\r\n";
+        "A.3\toff\r\n"
+        "C.0\toff\r\n";
     PRINT_RESULT(test_positive_term(
                 gpio_info,
                 pwm_info,
@@ -288,7 +324,36 @@ static bool test_set_pwm_on()
         "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
-        "A.3\tpwm 10% tim2 50Hz\r\n";
+        "A.3\tpwm 10% tim2 50Hz\r\n"
+        "C.0\toff\r\n";
+    PRINT_RESULT(test_positive_term(
+                gpio_info,
+                pwm_info,
+                input,
+                output));
+    return result;
+
+}
+
+static bool test_set_pwm_on_2()
+{
+    bool result = true;
+    TERM_gpio_port_info_TYP gpio_info[10] =
+        {
+            TERM_UTEST_DEFAULT_GPIO_CONFIG
+        };
+    TERM_gpio_tim_pwm_info_TYP pwm_info[10] =
+        {
+            TERM_UTEST_DEFAULT_TIM_CONFIG
+        };
+    char input[] ="gpio C port 0 mode pwm 100%\n"
+        "gpio info\n";
+    char output[] =  "\r\nC.0\tpwm 100% tim3 20Hz\r\n"
+        "\r\nA.1\toff\r\n"
+        "B.2\toff\r\n"
+        "B.3\ton\r\n"
+        "A.3\toff\r\n"
+        "C.0\tpwm 100% tim3 20Hz\r\n";
     PRINT_RESULT(test_positive_term(
                 gpio_info,
                 pwm_info,
@@ -316,11 +381,13 @@ static bool test_set_pwm_off()
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "A.3\tpwm 34% tim2 50Hz\r\n"
+        "C.0\toff\r\n"
         "\r\nA.3\ton\r\n"
         "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
-        "A.3\ton\r\n";
+        "A.3\ton\r\n"
+        "C.0\toff\r\n";
 
     gpio_info[3].is_PWM = true;
     gpio_info[3].pwm_info = &pwm_info[0];
@@ -352,13 +419,15 @@ static bool test_set_pwm_freq()
         "B.2\toff\r\n"
         "B.3\ton\r\n"
         "A.3\tpwm 34% tim2 50Hz\r\n"
+        "C.0\toff\r\n"
         "\r\nTIM2 Freq 101Hz:\r\n"
         "\tA.1\tpwm off\r\n"
         "\tA.3\tpwm 34%\r\n"
         "\r\nA.1\toff\r\n"
         "B.2\toff\r\n"
         "B.3\ton\r\n"
-        "A.3\tpwm 34% tim2 101Hz\r\n";
+        "A.3\tpwm 34% tim2 101Hz\r\n"
+        "C.0\toff\r\n";
 
     gpio_info[3].is_PWM = true;
     gpio_info[3].pwm_info = &pwm_info[0];
@@ -493,8 +562,10 @@ bool parser_utests()
     rc &= test_info_2();
     rc &= test_pwm_info();
     rc &= test_set_on();
+    rc &= test_set_on_2();
     rc &= test_set_off();
     rc &= test_set_pwm_on();
+    rc &= test_set_pwm_on_2();
     rc &= test_set_pwm_off();
     rc &= test_set_pwm_freq();
     rc &= test_error_incorrect_port();

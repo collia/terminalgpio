@@ -249,7 +249,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim)
                              8);
     if (USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK)
     {
-        //BRD_led_off();
+        BRD_led_off();
     }
 #endif
 }

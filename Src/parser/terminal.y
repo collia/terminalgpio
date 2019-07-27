@@ -73,7 +73,7 @@ gpio_info:
                 return -1;
             }
             TERM_debug_print("\r\n");
-            while(data->idx.port != 0 && data->idx.line != 0)
+            while(!(data->idx.port == 0 && data->idx.line == 0))
             {
                 if (TERM_gpio_print_port_info(data) < 0)
                 {

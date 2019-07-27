@@ -40,8 +40,8 @@ static TERM_gpio_port_info_TYP* TERM_gpio_find_gpio_for_port(
     const TERM_gpio_port_TYP* idx)
 {
     TERM_gpio_port_info_TYP* gpio_info = TERM_gpio_info_table;
-    while((gpio_info->idx.port != 0) &&
-          (gpio_info->idx.line != 0))
+    while(!((gpio_info->idx.port == 0) &&
+            (gpio_info->idx.line == 0)))
     {
         if((gpio_info->idx.port == idx->port) &&
            (gpio_info->idx.line == idx->line))
@@ -104,8 +104,8 @@ TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool
         return NULL;
     }
 
-    while((gpio_info->idx.port != 0) &&
-      (gpio_info->idx.line != 0))
+    while(!((gpio_info->idx.port == 0) &&
+            (gpio_info->idx.line == 0)))
     {
         if((gpio_info->idx.port == cport) &&
            (gpio_info->idx.line == line))
@@ -171,8 +171,8 @@ TERM_gpio_tim_pwm_info_TYP * TERM_gpio_set_pwm_freq(int tim_num, int freq)
                     return NULL;
                 }
 
-                while((gpio_info->idx.port != 0) &&
-                      (gpio_info->idx.line != 0))
+                while(!((gpio_info->idx.port == 0) &&
+                        (gpio_info->idx.line == 0)))
                 {
                     if((gpio_info->is_PWM) && (gpio_info->pwm_info != NULL))
                     {

@@ -214,8 +214,8 @@ int GPIO_init(TERM_gpio_port_info_TYP* gpio_table,
     __HAL_RCC_GPIOD_CLK_ENABLE();
     __HAL_RCC_TIM2_CLK_ENABLE();
         
-    while((gpio_line->idx.port != 0) &&
-          (gpio_line->idx.line != 0))
+    while(!((gpio_line->idx.port == 0) &&
+            (gpio_line->idx.line == 0)))
     {
 
         GPIO_set_mode(gpio_line);
