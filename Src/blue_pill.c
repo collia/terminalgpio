@@ -92,10 +92,10 @@ TERM_gpio_port_info_TYP BRD_gpio_def_config[] =
     //{{'C', 13},  true, false, 0},
     {{'C', 14},  true, false, 0},
     {{'C', 15},  true, false, 0},
-    {{'A', 0},   true, false, 0},
-    {{'A', 1},   true, false, 0},
-    {{'A', 2},   true, false, 0},
-    {{'A', 3},   true, false, 0},
+    {{'A', 0},   false, false, 0},
+    {{'A', 1},   false, false, 0},
+    {{'A', 2},   false, false, 0},
+    {{'A', 3},   false, false, 0},
     {{'A', 4},   true, false, 0},
     {{'A', 5},   true, false, 0},
     {{'A', 6},   true, false, 0},
@@ -131,7 +131,7 @@ TERM_gpio_port_info_TYP BRD_gpio_def_config[] =
 
 TERM_gpio_tim_pwm_info_TYP BRD_gpio_pwm_def_config[] =
 {
-    {2, 50, {{'A', 0}, {'A', 1},{'A', 2},{'A', 3}}},
+    {2, 500, {{'A', 0}, {'A', 1},{'A', 2},{'A', 3}}},
     {0, 0,  {{0, 0}, {0, 0},{0, 0},{0, 0}}}
 };
 
