@@ -1,3 +1,13 @@
+/**
+ * @file    termgpio.c
+ * @author  Nikolay
+ * @version 0.0.1
+ * @date    2019-07-28
+ * @brief   File contains functions for terminal and implements
+ *           needed posix functions
+ *
+ *
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -11,12 +21,19 @@
 static TERM_gpio_port_info_TYP *TERM_gpio_info_table = 0;
 static TERM_gpio_tim_pwm_info_TYP *TERM_gpio_pwm_table = 0;
 
-void yyerror(const char *str);
-void TERM_debug_print(const char *line);
+extern void yyerror(const char *str);
+extern void TERM_debug_print(const char *line);
 
 extern int GPIO_set_mode(TERM_gpio_port_info_TYP* gpio_line);
 extern int GPIO_pwm_cfg(TERM_gpio_tim_pwm_info_TYP* pwm_line);
 
+/**
+ * @brief         Scan tim table and return applicable timer or null
+ * @details       module should be initialized before this function call
+ * @param[in]     idx gpio entry
+ *
+ * @return        tim structure pointer or null
+ */
 static TERM_gpio_tim_pwm_info_TYP* TERM_gpio_find_tim_for_port(
     const TERM_gpio_port_TYP* idx)
 {
@@ -35,7 +52,13 @@ static TERM_gpio_tim_pwm_info_TYP* TERM_gpio_find_tim_for_port(
     }
     return NULL;
 }
-
+/**
+ * @brief         Find in gpio table element for port letter and line
+ * @details       can return null, should be called after table initialization
+ * @param[in]     idx gpio port name and line number
+ *
+ * @return        gpio entry ptr or null
+ */
 static TERM_gpio_port_info_TYP* TERM_gpio_find_gpio_for_port(
     const TERM_gpio_port_TYP* idx)
 {
@@ -52,25 +75,54 @@ static TERM_gpio_port_info_TYP* TERM_gpio_find_gpio_for_port(
     }
     return NULL;
 }
-
+/**
+ * @brief         Return ptr for gpio table
+ * @details       If module didn't initialized, can return null
+ *
+ * @return        gpio table
+ */
 TERM_gpio_port_info_TYP*  TERM_gpio_get_gpio_info()
 {
     return TERM_gpio_info_table;
 }
+/**
+ * @brief         Return ptr for timers table
+ * @details       If module didn't initialized, can return null
+ *
+ * @return        timers table
+ */
 TERM_gpio_tim_pwm_info_TYP*  TERM_gpio_get_pwm_info()
 {
     return TERM_gpio_pwm_table;
 }
-
+/**
+ * @brief         Initialisation of module
+ *
+ * @param[in]     gpio_table pointer to gpio table in static memory
+ * @param[in]     pwm_table pointer to timer table in static memory
+ *
+ * @return        none
+ */
 void TERM_gpio_set_info(TERM_gpio_port_info_TYP* gpio_table,
-    TERM_gpio_tim_pwm_info_TYP *pwm_table)
+                        TERM_gpio_tim_pwm_info_TYP *pwm_table)
 {
     TERM_gpio_info_table = gpio_table;
     TERM_gpio_pwm_table = pwm_table;
 }
-
-
-
+/**
+ * @brief         Handler for gpio port mode function
+ * @details       Function is called when user input commands:
+ *                gpio A|B|C|D port [0-15] mode on|off
+ *                gpio A|B|C|D port [0-15] mode pwm [0-100]%
+ *
+ * @param[in]     port "A|B|C|D" char port presentation
+ * @param[in]     line 0-15 gpio line
+ * @param[in]     mode in gpio mode hi or low level
+ * @param[in]     is_PWM gpio line mode - gpio output or PWM
+ * @param[in]     duty in pwm mode duty for gpio line
+ *
+ * @return        pointer to updated table line, or NULL when error
+ */
 TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool is_PWM, int duty)
 {
     char cport;
@@ -142,11 +194,27 @@ TERM_gpio_port_info_TYP * TERM_gpio_set_mode(int port, int line, bool mode, bool
     yyerror("Port is not allowed");
     return NULL;
 }
-
+/**
+ * @brief         Handler for pwm freq command
+ * @details       Function is called when user input commands:
+ *                pwm tim [1-3] freq <int>
+ *
+ * @param[in]     tim_num tim number 0-4
+ * @param[in]     freq new frequency for timer TIM
+ *
+ * @return        pointer to updated table line, or NULL when error
+ */
 TERM_gpio_tim_pwm_info_TYP * TERM_gpio_set_pwm_freq(int tim_num, int freq)
 {
     TERM_gpio_tim_pwm_info_TYP * tim = TERM_gpio_pwm_table;
     TERM_gpio_port_info_TYP *gpio_info = TERM_gpio_info_table;
+
+    if((TERM_gpio_info_table == 0) || (TERM_gpio_pwm_table == 0))
+    {
+        yyerror("not initialized");
+        return NULL;
+    }
+
     if(freq < 0)
     {
         yyerror("incorrect freq");
@@ -187,28 +255,33 @@ TERM_gpio_tim_pwm_info_TYP * TERM_gpio_set_pwm_freq(int tim_num, int freq)
                     }
                     gpio_info++;
                 }
-                
                 return tim;
             }
         }
         tim++;
     }
     yyerror("tim is not allowed");
-        
     return NULL;
 }
-
-
+/**
+ * @brief         Print to terminal information about gpio line
+ * @details       This function is called for command
+ *                gpio info
+ *                and config functions
+ * @param[in]     data gpio info that will be printed
+ *
+ * @return        0 for success
+ */
 int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
 {
     char buffer[TERM_PRINT_BUFFER_LENGTH];
     char *bp = buffer;
     if(data->is_PWM)
     {
-        //snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%d Hz %d%%\n", data->port, data->line, data->freq, data->duty);
+
         *bp++=data->idx.port;
         *bp++='.';
-        bp += TERM_gpio_itona(data->idx.line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
+        bp += TERM_gpio_itona(data->idx.line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
         *bp++='\t';
         *bp++='p';
         *bp++='w';
@@ -234,10 +307,9 @@ int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
     }
     else
     {
-        //snprintf(buffer, TERM_PRINT_BUFFER_LENGTH,"%c.%d\t%s\n", data->port, data->line, data->level?"on":"off");
         *bp++=data->idx.port;
         *bp++='.';
-        bp += TERM_gpio_itona(data->idx.line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
+        bp += TERM_gpio_itona(data->idx.line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
         *bp++='\t';
         if(data->level)
         {
@@ -257,7 +329,15 @@ int TERM_gpio_print_port_info(TERM_gpio_port_info_TYP * data)
     }
     return 0;
 }
-
+/**
+ * @brief         Print to terminal information about timer
+ * @details       This function is called for command
+ *                gpio info
+ *                and config functions
+ * @param[in]     data gpio info that will be printed
+ *
+ * @return        0 for success
+ */
 int TERM_gpio_print_tim_info(TERM_gpio_tim_pwm_info_TYP * data)
 {
     TERM_gpio_port_info_TYP *gpio_info;
@@ -289,7 +369,7 @@ int TERM_gpio_print_tim_info(TERM_gpio_tim_pwm_info_TYP * data)
             *bp++='\t';
             *bp++=gpio_info->idx.port;
             *bp++='.';
-            bp += TERM_gpio_itona(gpio_info->idx.line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);  
+            bp += TERM_gpio_itona(gpio_info->idx.line, bp, &buffer[TERM_PRINT_BUFFER_LENGTH]-bp-2);
             *bp++='\t';
             *bp++='p';
             *bp++='w';
@@ -317,7 +397,20 @@ int TERM_gpio_print_tim_info(TERM_gpio_tim_pwm_info_TYP * data)
 }
 
 
-// Allowed only simple dec format. returns 0 in error case
+/** @defgroup termposix Posix functions for terminal
+ *  Generated  lexer and parser needs some posix functions
+ *  but embedded platforms doesn't contains them
+ *  @{
+ */
+/**
+ * @brief         function converts string to integer
+ * @details       Allowed only simple dec format. returns 0 in error case
+ *                char '%' stops converting, so 100% will be 100
+ *                char '.' is skipped, so 10.1 will be 101
+ * @param[in]     string with number
+ *
+ * @return        converted number or 0
+ */
 int TERM_gpio_atoi(const char *str)
 {
     const char *letter = str;;
@@ -355,7 +448,7 @@ int TERM_gpio_atoi(const char *str)
         }
         ++letter;
     }
-    
+
     return result*sign;
 }
 
@@ -367,7 +460,6 @@ int TERM_gpio_atoi(const char *str)
  *                       be reached will be exit from function
  * @return - len of result string
  */
-
 int TERM_gpio_itona(const int value, char *str, const int max_size )
 {
     char *s = str;
@@ -409,8 +501,15 @@ int TERM_gpio_itona(const int value, char *str, const int max_size )
 
     return res;
 }
-
-
+/**
+ * @brief         Compare two strings
+ * @details       simylation of standart strcmp function
+ * @param[in]     str1 first C string to comare
+ * @param[in]     str2 second C string to comare
+ *
+ * @return        0 in case strings are equal,
+ *               nonzero - index of first nonequal char plus one
+ */
 int TERM_gpio_strcmp(const char *str1, const char *str2)
 {
     const char *s1 = str1;
@@ -424,16 +523,22 @@ int TERM_gpio_strcmp(const char *str1, const char *str2)
     }
     if((*s1 == 0) && (*s2 == 0))
     {
-        return 0;    
+        return 0;
     }
     else
     {
         return s1 - str1 + 1;
     }
-
-//return strcmp(str1, str2);
 }
-
+/**
+ * @brief         Set memory with some value
+ * @details       wrapper for memset function
+ * @param[in]     data - ptr to memory
+ * @param[in]     val - value to set
+ * @param[in]     len - number of bytes to write
+ *
+ * @return       none
+ */
 void TERM_gpio_memset(void* data, char val, int len)
 {
      memset(data, val, len);
@@ -445,10 +550,16 @@ static char memory_pool_64[64];
 static bool memory_pool_64_used = false;
 static char memory_pool_1028[1028];
 static bool memory_pool_1028_used = false;
-
+/**
+ * @brief         memory allocate
+ * @details       simulation af malloc function
+ *                Can allocate only 3 buffers with sizes 8, 64 and 1028 bytes
+ * @param[in]     size - buffer size to allocate
+ *
+ * @return        pointer to memory or null
+ */
 void* TERM_gpio_malloc(size_t size)
 {
-    //printf("size = %zu\n", size);
     if (size <= 8)
     {
         if (memory_pool_8_used)
@@ -487,12 +598,27 @@ void* TERM_gpio_malloc(size_t size)
     }
     return 0;
 }
-
+/**
+ * @brief         memory allocate
+ * @details       simulation af realloc function
+ *                Can allocate only 3 buffers with sizes 8, 64 and 1028 bytes
+ * @param[in]     ptr - pointer to memory
+ * @param[in]     size - buffer size to allocate
+ *
+ * @return        pointer to memory or null
+ */
 void* TERM_gpio_realloc(void *ptr, size_t size)
 {
     TERM_gpio_free(ptr);
     return TERM_gpio_malloc(size);
 }
+/**
+ * @brief         memory free
+ * @details       simulation af free function
+ * @param[in]     ptr - pointer to memory
+ *
+ * @return        nothing
+ */
 void TERM_gpio_free(void *ptr)
 {
      if (ptr == memory_pool_8)
@@ -508,10 +634,4 @@ void TERM_gpio_free(void *ptr)
          memory_pool_1028_used = false;
       }
 }
-
-
-
-
-
-
-
+/** @} */
