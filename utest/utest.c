@@ -9,6 +9,7 @@
 extern bool parser_utests();
 extern bool test_ring_buffer();
 extern bool myposix_utests();
+extern bool pwm_params_buffer_utests();
 
 int main()
 {
@@ -16,6 +17,7 @@ int main()
     rc &= parser_utests();
     rc &= test_ring_buffer();
     rc &= myposix_utests();
+    rc &= pwm_params_buffer_utests();
     if(rc)
     {
         printf("OK\n");

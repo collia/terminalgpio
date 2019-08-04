@@ -112,6 +112,7 @@ prg = env.Program(
     source = [
         'build/src/main.c',
         'build/src/gpio.c',
+        'build/src/gpio_tim.c',
         'build/src/blue_pill.c',
         'build/src/terminal.c',
         'build/src/stm32f1xx_it.c',

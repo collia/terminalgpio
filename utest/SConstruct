@@ -14,8 +14,13 @@ env.Append(LIBPATH = [
 Export('env')
 SConscript(['../src/parser/SConscript'])
 
+env.VariantDir('.', '../src', duplicate=0)
+
+
 env.Program(target='utest', LIBS=['libterminal'], source=['termutest.c',         
                                                           'ringbutest.c',
+                                                          'gpio_tim.c',
                                                           'myposixutest.c',
+                                                          'timconfigutest.c',
                                                           'termutest_mock.c',
                                                           'utest.c'])

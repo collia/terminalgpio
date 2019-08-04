@@ -14,7 +14,7 @@
 #include "termgpio.h"
 #include "gpio.h"
 #include "main.h"
-
+#include "gpio_tim.h"
 
 #define TIM_COUNTER_CLOCK 10000
 
@@ -268,25 +268,6 @@ static int GPIO_tim_channel_convert_to_hal(TERM_gpio_tim_pwm_info_TYP *info,
     }
     return 0;
 }
-/**
- * @brief         Funciton calculates paramters for tim 
- * @param[in]     system_clock
- * @param[in]     freq - needed frequency for pwm
- * @param[out]    prescaler
- * @param[out]    period
- * @param[out]    clock_division
- *
- * @return        0 for OK
- */
-int GPIO_calc_tim_pwm_params(uint32_t system_clock,
-                             uint32_t freq,
-                             uint32_t *prescaler,
-                             uint32_t *period,
-                             uint32_t *clock_division)
-{
-    
-    return 0;
-}
 
 /**
  * @brief         General gpio module initialisation
@@ -382,24 +363,37 @@ extern int GPIO_pwm_cfg(TERM_gpio_tim_pwm_info_TYP* pwm_line)
     TIM_HandleTypeDef *timHandle = &TIM_PWM_handler[(int)pwm_line->tim-1];
     uint32_t uhPrescalerValue = 0;
     unsigned int period;
+    unsigned int clock_division = 0;
     int rc;
 
     rc = GPIO_tim_convert_to_hal(pwm_line,
                                  &tim);
     if(rc < 0)
             return rc;
+    /*
     uhPrescalerValue = (uint32_t)(SystemCoreClock / TIM_COUNTER_CLOCK) - 1;
 
     period = (((10*TIM_COUNTER_CLOCK)/pwm_line->freq))-1;
+    */
+    rc = GPIO_calc_tim_pwm_params(SystemCoreClock,
+                                  pwm_line->freq,
+                                  &uhPrescalerValue,
+                                  &period,
+                                  &clock_division);
+    if(rc < 0)
+        return rc;
 
-    //TERM_debug_print_int(SystemCoreClock);
-    //TERM_debug_print_int(uhPrescalerValue);
-    //TERM_debug_print_int(period);
+    TERM_debug_print("\n\rSys clock: ");
+    TERM_debug_print_int(SystemCoreClock);
+    TERM_debug_print("presc: ");
+    TERM_debug_print_int(uhPrescalerValue);
+    TERM_debug_print("period: ");
+    TERM_debug_print_int(period);
     
     timHandle->Instance = tim;
     timHandle->Init.Prescaler         = uhPrescalerValue;
     timHandle->Init.Period            = period;//1999;//PERIOD_VALUE;
-    timHandle->Init.ClockDivision     = 0;
+    timHandle->Init.ClockDivision     = clock_division;
     timHandle->Init.CounterMode       = TIM_COUNTERMODE_UP;
     timHandle->Init.RepetitionCounter = 0;
     timHandle->Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;

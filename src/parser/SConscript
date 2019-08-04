@@ -25,7 +25,6 @@ penv['LEXCOM'] = 'flex  -I -Cem -S${SOURCE.srcdir}/flex_nostd.skl -t $SOURCE > $
 #env["LEXFLAGS"] = '-I -Cem -S${SOURCE.srcdir}/flex_nostd.skl'
 
 penv.Append(CCFLAGGS = [
-    '-g3',
     '-nostdlib'
     ])
 

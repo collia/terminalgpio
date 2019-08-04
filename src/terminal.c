@@ -65,8 +65,9 @@ void TERM_debug_print_int(const int value)
         return;
 
     bp += TERM_gpio_itona(value, bp, &buffer[50]-bp-2);
-    bp += '\n';
-    bp += 0;
+    *bp++ = '\r';
+    *bp++ = '\n';
+    *bp++ = 0;
     TERM_debug_print(buffer);
 }
 
