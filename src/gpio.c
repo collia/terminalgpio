@@ -269,7 +269,29 @@ static int GPIO_tim_channel_convert_to_hal(TERM_gpio_tim_pwm_info_TYP *info,
     return 0;
 }
 /**
+ * @brief         Funciton calculates paramters for tim 
+ * @param[in]     system_clock
+ * @param[in]     freq - needed frequency for pwm
+ * @param[out]    prescaler
+ * @param[out]    period
+ * @param[out]    clock_division
+ *
+ * @return        0 for OK
+ */
+int GPIO_calc_tim_pwm_params(uint32_t system_clock,
+                             uint32_t freq,
+                             uint32_t *prescaler,
+                             uint32_t *period,
+                             uint32_t *clock_division)
+{
+    
+    return 0;
+}
+
+/**
  * @brief         General gpio module initialisation
+ * @details       This function is public only for unit tests.
+ *                Please don't use it
  * @details       Function config all ports and timers
  *                according to initial config
  * @param[in]     gpio_table gpio config
@@ -370,6 +392,10 @@ extern int GPIO_pwm_cfg(TERM_gpio_tim_pwm_info_TYP* pwm_line)
 
     period = (((10*TIM_COUNTER_CLOCK)/pwm_line->freq))-1;
 
+    //TERM_debug_print_int(SystemCoreClock);
+    //TERM_debug_print_int(uhPrescalerValue);
+    //TERM_debug_print_int(period);
+    
     timHandle->Instance = tim;
     timHandle->Init.Prescaler         = uhPrescalerValue;
     timHandle->Init.Period            = period;//1999;//PERIOD_VALUE;

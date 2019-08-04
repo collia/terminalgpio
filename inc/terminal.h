@@ -12,6 +12,7 @@ void TERM_deinit(void);
 void TERM_get_config(USBD_CDC_LineCodingTypeDef* cfg);
 void TERM_set_config(USBD_CDC_LineCodingTypeDef* cfg);
 void TERM_debug_print(const char *line);
+void TERM_debug_print_int(const int value);
 
 int TERM_get_input_buf(unsigned char* buf, int max_size);
 #endif

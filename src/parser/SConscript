@@ -1,0 +1,41 @@
+
+#env = Environment()
+Import('env')
+
+#Createng skeleton file from flex.skl int flex repo 
+#sed 's/4_/a4_/g
+#s/m4preproc_/m4_/g
+#' "flex.skl" |
+#m4 -P -I "." "-DFLEX_MAJOR_VERSION=0" \
+#   "-DFLEX_MINOR_VERSION=0" \
+#   "-DFLEX_SUBMINOR_VERSION=0" |
+#sed '/^%#/d
+#s/m4_/m4preproc_/g
+#s/a4_/4_/g' | m4 -P -I . > flex_new.skl 
+
+penv = env.Clone()
+
+penv.VariantDir('#build/parser/', '.', duplicate=0)
+
+penv['YACC'] = 'yacc'
+penv['YACCCOM'] = 'yacc -d $SOURCE -o $TARGET'
+
+#env['LEXCOM'] = 'flex  -I -Cem  -t $SOURCE > $TARGET'
+penv['LEXCOM'] = 'flex  -I -Cem -S${SOURCE.srcdir}/flex_nostd.skl -t $SOURCE > $TARGET'
+#env["LEXFLAGS"] = '-I -Cem -S${SOURCE.srcdir}/flex_nostd.skl'
+
+penv.Append(CCFLAGGS = [
+    '-g3',
+    '-nostdlib'
+    ])
+
+penv.Depends('terminal.ll.c', 'flex_nostd.skl')
+penv.Depends('terminal.ll.c', 'y.tab.h')
+
+penv.CFile(target = ['terminal.ll.c'], source = 'terminal.l')
+penv.CFile(target = ['y.tab.c', 'y.tab.h'], source = 'terminal.y')
+
+penv.Library("#lib/terminal", ['y.tab.c',
+                             'terminal.ll.c',
+                             'termgpio.c']);
+#print(penv.Dump())

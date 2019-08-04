@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "../../Inc/ringbuffer.h"
+#include "ringbuffer.h"
 #include "utest.h"
 
 RING_BUFFER_DECL(test, 10)

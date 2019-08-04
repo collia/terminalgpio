@@ -131,7 +131,7 @@ TERM_gpio_port_info_TYP BRD_gpio_def_config[] =
 
 TERM_gpio_tim_pwm_info_TYP BRD_gpio_pwm_def_config[] =
 {
-    {2, 500, {{'A', 0}, {'A', 1},{'A', 2},{'A', 3}}},
+    {2, 1000, {{'A', 0}, {'A', 1},{'A', 2},{'A', 3}}},
     {0, 0,  {{0, 0}, {0, 0},{0, 0},{0, 0}}}
 };
 

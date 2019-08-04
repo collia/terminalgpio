@@ -1,9 +1,9 @@
 
 #include "string.h"
-#include "stdbool.h"
+//#include "stdbool.h"
 #include "terminal.h"
 #include "main.h"
-
+#include "termgpio.h"
 
 USBD_CDC_LineCodingTypeDef LineCoding = {
   115200,                       /* baud rate */
@@ -55,6 +55,19 @@ void TERM_debug_print(const char *line)
     if(!TERM_inited)
         return;
     low_tx_handler((uint8_t*)line, strlen(line));
+}
+
+void TERM_debug_print_int(const int value)
+{
+    char buffer[50];
+    char *bp = buffer;
+    if(!TERM_inited)
+        return;
+
+    bp += TERM_gpio_itona(value, bp, &buffer[50]-bp-2);
+    bp += '\n';
+    bp += 0;
+    TERM_debug_print(buffer);
 }
 
 int TERM_get_input_buf(unsigned char* buf, int max_size)

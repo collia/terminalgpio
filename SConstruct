@@ -23,8 +23,8 @@ stm_device='STM32F103XB'
 
 # include locations
 env.Append(CPPPATH = [
-    '#Inc',
-    '#Src/parser', 
+    '#inc',
+    '#src/parser', 
     '#' + stm32cubef1_hal_path + 'Inc',
     '#' + stm32cubef1_cmsis_path +'Include',
     '#' + stm32cubef1_cmsis_path +'Device/ST/STM32F1xx/Include',
@@ -33,13 +33,8 @@ env.Append(CPPPATH = [
     ])
 
 env.Append(LIBPATH = [
-    'lib',
-    'Src/parser/lib/'
+    'lib'
     ])
-
-Export('env')
-
-SConscript(['Src/parser/SConscript'])
 
 # compiler flags
 env.Append(CCFLAGS = [
@@ -52,6 +47,11 @@ env.Append(CCFLAGS = [
     '-g'
 ])
 
+Export('env')
+
+SConscript(['src/parser/SConscript'])
+
+
 # linker flags
 #    '-Wl,--gc-sections,-Map=main.elf.map,-cref,-u,Reset_Handler',
 env.Append(LINKFLAGS = [
@@ -60,7 +60,7 @@ env.Append(LINKFLAGS = [
     '-specs=nano.specs',
     '-specs=nosys.specs',
     '-Wl,--gc-sections,-Map=main.elf.map,-cref,-u,Reset_Handler,--trace',
-     '-T', 'Src/gcc/linker/'+ stm_device + '_FLASH.ld'
+     '-T', 'src/gcc/linker/'+ stm_device + '_FLASH.ld'
     ]) 
 
 # defines
@@ -73,7 +73,7 @@ env.VariantDir('build/stm32/drv/', stm32cubef1_hal_path+'Src', duplicate=0)
 env.VariantDir('build/stm32/usb/', stm32cubef1_middlewears_path+ 'STM32_USB_Device_Library/Core/Src', duplicate=0)
 env.VariantDir('build/stm32/usb/cdc', stm32cubef1_middlewears_path +'STM32_USB_Device_Library/Class/CDC/Src', duplicate=0)
 
-env.Library('lib/libstm32',
+env.Library('#lib/libstm32',
                    [
                        'build/stm32/drv/stm32f1xx_hal.c',
                        'build/stm32/drv/stm32f1xx_hal_gpio.c',
@@ -101,7 +101,7 @@ env.Library('lib/libstm32',
 
                    ])
 
-env.VariantDir('build/src/', 'Src', duplicate=0)
+env.VariantDir('build/src/', 'src', duplicate=0)
 
 
 #print(env.Dump())
@@ -113,7 +113,6 @@ prg = env.Program(
         'build/src/main.c',
         'build/src/gpio.c',
         'build/src/blue_pill.c',
-#        'build/src/stm32f1xx_hal_msp.c',
         'build/src/terminal.c',
         'build/src/stm32f1xx_it.c',
         'build/src/system_stm32f1xx.c',

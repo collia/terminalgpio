@@ -1,11 +1,18 @@
-env = Environment()
+import os
+
+env = Environment(ENV = os.environ)
+
+env.Append(CPPPATH = [
+    '#.',
+    '#../src/parser/',
+    '#../inc/'])
 
 env.Append(LIBPATH = [
-    'lib'
+    './lib'
     ])
 
 Export('env')
-SConscript(['SConscript'])
+SConscript(['../src/parser/SConscript'])
 
 env.Program(target='utest', LIBS=['libterminal'], source=['termutest.c',         
                                                           'ringbutest.c',
