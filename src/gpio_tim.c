@@ -84,7 +84,7 @@ int GPIO_calc_tim_pwm_params(uint32_t system_clock,
             continue;
         }
 
-        if(new_period < 650)
+        if(new_period < 249)
         {
             //i *= 10;
 	    //printf("i=%d 2 p=%d\n", i, new_period);
