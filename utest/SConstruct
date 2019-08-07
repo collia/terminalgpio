@@ -1,6 +1,6 @@
 import os
 
-env = Environment(ENV = os.environ)
+env = Environment()
 
 env.Append(CPPPATH = [
     '#.',
@@ -17,7 +17,7 @@ SConscript(['../src/parser/SConscript'])
 env.VariantDir('.', '../src', duplicate=0)
 
 
-env.Program(target='utest', LIBS=['libterminal'], source=['termutest.c',         
+env.Program(target='utest', LIBS=['libterminal', 'm'], source=['termutest.c',         
                                                           'ringbutest.c',
                                                           'gpio_tim.c',
                                                           'myposixutest.c',

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "gpio_tim.h"
 #include "utest.h"
@@ -11,10 +12,10 @@
 
 static int calculate_freq(uint32_t prescaler, uint32_t period, uint32_t clock_division)
 {
-    double tim_tick_ms = (double)(prescaler+1) / (double)SystemCoreClock;
-    double pwm_ms = tim_tick_ms * (period + 1);
-    double freq = 1 / pwm_ms;
-    return (int)(freq*10);
+    double tim_tick_hz = (double)SystemCoreClock / (double)(prescaler+1);
+    double freq = (10* tim_tick_hz) / (period + 1);
+    //printf("tick: %f freq=%f\n", tim_tick_hz, freq);
+    return (int)round(freq);
 }
 
 
@@ -94,11 +95,25 @@ static bool test_pwm_0_1_to_10_0Hz(){
     return result;
 }
 
+static bool test_pwm_100_0_to_1000_0Hz(){
+    bool result = true;
+    int i;
+    for(i = 1000; i < 10000; i++)
+    {
+        result = test_pwm_positive(i);
+        if(!result)
+            break;
+    }
+    PRINT_RESULT(result);
+    return result;
+}
+
 /* Tested API */
 bool pwm_params_buffer_utests() {
     bool rc = true;
     rc &= test_pwm_50_0_Hz();
     rc &= test_pwm_10_0_to_100_0Hz();
     rc &= test_pwm_0_1_to_10_0Hz();
+    rc &= test_pwm_100_0_to_1000_0Hz();
     return rc;
 }

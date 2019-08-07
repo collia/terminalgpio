@@ -15,15 +15,26 @@
 #include <stdio.h>
 #define TIM_COUNTER_CLOCK 10000
 
+static unsigned int rounded_div(unsigned int a, unsigned int b)
+{
+	unsigned int rem = a%b;
+	unsigned int quot = a/b;
+	if(rem > (b >> 1))
+	{
+		quot += 1;
+	}
+	return quot;
+}
+
 static int calculate_freq(uint32_t system_clock, uint32_t prescaler, uint32_t period, uint32_t clock_division)
 {
-    uint32_t tim_tick_hz =  system_clock / (prescaler+1);
+    uint32_t tim_tick_hz =  rounded_div(system_clock, (prescaler+1));
     if(tim_tick_hz == 0)
     {
         return 0;
     }
-    uint32_t pwm_hz = 10*tim_tick_hz / (period + 1);
-
+    uint32_t pwm_hz = rounded_div(10*tim_tick_hz, (period +1));
+    //printf("tick=%d, hz=%d\n", tim_tick_hz, pwm_hz);
     return (pwm_hz);
 }
 
@@ -57,29 +68,32 @@ int GPIO_calc_tim_pwm_params(uint32_t system_clock,
 
     for(i = 1; i < 0xffff; i+=1)
     {
-        new_prescaler = (uint32_t)(system_clock / i) - 1;
+        new_prescaler = (uint32_t)(rounded_div(system_clock , i)) - 1;
         if((new_prescaler == 0) || (new_prescaler >= 0xffff))
         {
             //i *= 100;
+            //printf("i=%d 1 psc=%d\n", i, new_prescaler);
             continue;
         }
 
-        new_period = (((10*i)/freq));
+        new_period = (rounded_div((10*i), freq)) -1;
         if((new_period == 0) || (new_period >= 0xffff))
         {
             //i *= 100;
+	    //printf("i=%d 1 p=%d\n", i, new_period);
             continue;
         }
 
-        if(new_period < 100)
+        if(new_period < 650)
         {
             //i *= 10;
+	    //printf("i=%d 2 p=%d\n", i, new_period);
             continue;
         }
 
         if(freq != calculate_freq(system_clock, new_prescaler, new_period, 0))
         {
-            // printf("i=%d psc=%d, p=%d\n", i, new_prescaler, new_period);
+            //printf("i=%d psc=%d, p=%d\n", i, new_prescaler, new_period);
             //printf("%d!=%d\n",freq,calculate_freq(system_clock, new_prescaler, new_period, 0) );
             continue;
         }
@@ -88,6 +102,7 @@ int GPIO_calc_tim_pwm_params(uint32_t system_clock,
         *prescaler = new_prescaler;
         *period = new_period;
         *clock_division = 0;
+	break;
     }
 
     if(is_found)
