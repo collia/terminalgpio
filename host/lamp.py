@@ -2,6 +2,8 @@
 # coding: utf-8
 import npyscreen
 import curses
+import sys
+import serial
 
 class App(npyscreen.StandardApp):
     def onStart(self):
@@ -61,6 +63,8 @@ class MainForm(npyscreen.FormBaseNew):
                     "0 - set frequency 100 Hz",
                     "2 - set frequency 120 Hz",
                     "alt+Enter - clear terminal window"]
+
+        self.communicator=Communicator(serial_interface)
         
         self.add_event_hander("mode_value_edited", self.mode_value_edited)
         self.add_event_hander("freq_value_edited", self.freq_value_edited)
@@ -153,8 +157,9 @@ class MainForm(npyscreen.FormBaseNew):
             self.duty.hidden = True
             self.extFreq.hidden = True
 
-        self.add_teminal_line(self.build_gpio_command(is_on, is_pwm, duty))
-        
+        cmd = self.build_gpio_command(is_on, is_pwm, duty)
+        self.add_teminal_line(cmd)
+        self.communicator.sendCommand(cmd)
         self.frequency.display()
         self.duty.display()
         self.extFreq.display()
@@ -184,7 +189,9 @@ class MainForm(npyscreen.FormBaseNew):
             freq = int(self.extFreq.value)
             self.extFreq.hidden = False
 
-        self.add_teminal_line(self.build_freq_command(freq))
+        cmd = self.build_freq_command(freq)
+        self.add_teminal_line(cmd)
+        self.communicator.sendCommand(cmd)
         self.extFreq.display()
 
 
@@ -236,8 +243,31 @@ class MainForm(npyscreen.FormBaseNew):
         self.LogBox.display()
         
     def exit_func(self, _input):
+        self.communicator.close()
         exit(0)
 
-if __name__ == '__main__':
+class Communicator:
+    def __init__(self, port):
+        "Open serial interface"
+        self.port = serial.Serial(port=port,
+                                  baudrate = 115200)
+        self.port.open()
+    def sendCommand(self, command):
+        self.port.write(command)
+    def close(self):
+        "close serial"
+        self.port.close()
+
+def init_tui(serial):
+    serial_interface = serial
     MyApp = App()
     MyApp.run()
+
+
+serial_interface=""
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Needed one parameter - serial interface")
+        exit(1)
+    init_tui(sys.argv[1])
