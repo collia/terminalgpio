@@ -4,6 +4,7 @@ import npyscreen
 import curses
 import sys
 import serial
+import time
 
 class App(npyscreen.StandardApp):
     def onStart(self):
@@ -98,6 +99,8 @@ class MainForm(npyscreen.FormBaseNew):
         self.duty = self.add(BoxSliderPercent, name="Brightness",
                              value=50,
                              hidden = True,
+                             contained_widget_arguments = {
+                                    "step":10},
                              relx = 2, rely = 3*y//4 - 6 - 4 ,
                              max_width=2*x // 3 - 5, max_height=3)
         self.extFreq = self.add(BoxSlider, name="Extended freqency",
@@ -249,16 +252,19 @@ class MainForm(npyscreen.FormBaseNew):
 class Communicator:
     def __init__(self, port):
         "Open serial interface"
+        #print("Openning "+port);
         self.port = serial.Serial(port=port,
                                   baudrate = 115200)
-        self.port.open()
+        #self.port.open()
     def sendCommand(self, command):
-        self.port.write(command)
+        self.port.write(command.encode("ascii", "ignore"))
+        time.sleep(0.5)
     def close(self):
         "close serial"
         self.port.close()
 
 def init_tui(serial):
+    global serial_interface
     serial_interface = serial
     MyApp = App()
     MyApp.run()
