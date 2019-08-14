@@ -82,7 +82,7 @@ RING_BUFFER_DECL(UserRx, APP_RX_DATA_SIZE); /* Received Data over USB are stored
 RING_BUFFER_DECL(UserTx, APP_RX_DATA_SIZE) /* Received Data over UART (CDC
                                          * interface) are stored in this buffer 
                                          */
-
+uint8_t UserRxBufferFS[64];
 /* UART handler declaration */
 UART_HandleTypeDef UartHandle;
 /* TIM handler declaration */
@@ -126,7 +126,7 @@ static int8_t CDC_Itf_Init(void)
     CDC_tx_timer_init();
     /* ## Set Application Buffers ############################################ */
     USBD_CDC_SetTxBuffer(&USBD_Device, RING_BUFFER(UserTx), 0);
-    USBD_CDC_SetRxBuffer(&USBD_Device, RING_BUFFER(UserRx));
+    USBD_CDC_SetRxBuffer(&USBD_Device, UserRxBufferFS);
 
     return (USBD_OK);
 }
@@ -271,7 +271,7 @@ static int8_t CDC_Itf_Receive(uint8_t * buf, uint32_t * len)
     // echo test
     CDC_tx(buf, *len);
 
-    USBD_CDC_SetRxBuffer(&USBD_Device,&RING_BUFFER(UserRx)[RING_BUFFER_IN_PTR(UserRx)]);
+    USBD_CDC_SetRxBuffer(&USBD_Device,UserRxBufferFS);
     USBD_CDC_ReceivePacket(&USBD_Device);
   
     return (USBD_OK);

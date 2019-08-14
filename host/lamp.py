@@ -100,7 +100,7 @@ class MainForm(npyscreen.FormBaseNew):
                              value=50,
                              hidden = True,
                              contained_widget_arguments = {
-                                    "step":10},
+                                    "step":1},
                              relx = 2, rely = 3*y//4 - 6 - 4 ,
                              max_width=2*x // 3 - 5, max_height=3)
         self.extFreq = self.add(BoxSlider, name="Extended freqency",

@@ -36,12 +36,12 @@ serial_interface="/dev/ttyACM0"
 if __name__ == '__main__':
     c=Communicator(serial_interface)
     sent = 0
-    for i in range(30, 100):
+    for i in range(0, 100):
         cmd = "gpio a port 0 mode pwm {}%".format(i)
         sent += len(cmd)
         print("Sent {} bytes".format(sent))
         print(cmd)
         c.sendCommand(cmd)
-        time.sleep(5)
+        time.sleep(1)
     c.close()
     
