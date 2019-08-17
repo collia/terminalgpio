@@ -5,21 +5,20 @@ import curses
 import sys
 import serial
 import time
+import threading
+import queue
 
 class App(npyscreen.StandardApp):
     def onStart(self):
         npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
         self.addForm("MAIN", MainForm, name="Lamp controller")
 
-        
 class LogBox(npyscreen.BoxTitle):
     _contained_widget = npyscreen.MultiLineEdit
 
 class HelpBox(npyscreen.BoxTitle):
     _contained_widget = npyscreen.Pager
 
-
-        
 class ModeSelect(npyscreen.BoxTitle):
     _contained_widget = npyscreen.SelectOne
     prev_sent_value = None
@@ -66,10 +65,10 @@ class MainForm(npyscreen.FormBaseNew):
                     "alt+Enter - clear terminal window"]
 
         self.communicator=Communicator(serial_interface)
-        
+
         self.add_event_hander("mode_value_edited", self.mode_value_edited)
         self.add_event_hander("freq_value_edited", self.freq_value_edited)
-        
+
         new_handlers = {
             "6": self.button_config,
             "5": self.button_config,
@@ -112,13 +111,12 @@ class MainForm(npyscreen.FormBaseNew):
                                     "step":10},
                                 relx = 2, rely =3*y//4 - 3 - 4 ,
                                 max_width=2*x // 3 - 5, max_height=3)
-        
+
         self.add(HelpBox, name = "Help", editable=False, relx = 2*x//3-2, rely=2,  max_height=3*y//4-6, max_width=x//3-1, values=help_str)
-        
+
         self.LogBox = self.add(LogBox, footer="Terminal", editable=False, relx = 2, rely = 3*y//4-3, max_height = y//4+1)
 
 
-        
     def on_ok(self):
         #self.parentApp.setNextForm(None)
         self.exit_func("")
@@ -133,12 +131,12 @@ class MainForm(npyscreen.FormBaseNew):
             else:
                 cmd += "off\n"
         return cmd
-            
+
     def mode_value_edited(self, event):
         is_on = False
         is_pwm = False
         duty = 50
-        
+
         if 0 in self.ModeSelect.value:
             is_on = False
             is_pwm = False
@@ -170,7 +168,7 @@ class MainForm(npyscreen.FormBaseNew):
     def build_freq_command(self, freq):
         cmd =  "pwm tim 2 freq {}.0\n".format(freq)
         return cmd
-            
+
     def freq_value_edited(self, event):
         freq = 0
         if 0 in self.frequency.value:
@@ -238,30 +236,52 @@ class MainForm(npyscreen.FormBaseNew):
             self.ModeSelect.value = 2
             self.ModeSelect.display()
             self.parentApp.queue_event(npyscreen.Event("mode_value_edited"))
-        
-            
 
     def inputbox_clear(self, _input):
         self.LogBox.value = ""
         self.LogBox.display()
-        
+
     def exit_func(self, _input):
         self.communicator.close()
         exit(0)
 
-class Communicator:
+class Communicator(threading.Thread):
     def __init__(self, port):
         "Open serial interface"
         #print("Openning "+port);
         self.port = serial.Serial(port=port,
                                   baudrate = 115200)
+        self.queue = queue.Queue(maxsize=0)
         #self.port.open()
+        threading.Thread.__init__(self)
+        self.signal = True
+        self.start()
+
     def sendCommand(self, command):
-        self.port.write(command.encode("ascii", "ignore"))
-        time.sleep(0.5)
+        self.queue.put(command)
+
     def close(self):
         "close serial"
         self.port.close()
+        #self.queue.task_done()
+        self.signal = False
+
+    def run(self):
+        while self.signal:
+            gpio_command = None
+            freq_command = None
+            while not self.queue.empty():
+                command = self.queue.get()
+                if "gpio" in command:
+                    gpio_command = command
+                elif "pwm" in command:
+                    freq_command = command
+            if gpio_command != None:
+                self.port.write(gpio_command.encode("ascii", "ignore"))
+                time.sleep(0.5)
+            if freq_command != None:
+                self.port.write(freq_command.encode("ascii", "ignore"))
+                time.sleep(0.5)
 
 def init_tui(serial):
     global serial_interface
